@@ -8,25 +8,28 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using NotionAutomationButtonAutomation.Extensions;
 using NotionAutomationButtonAutomation.Objects;
 
 namespace NotionAutomationButtonAutomation
 {
+
+    
     public class NotionButtonClicker : INotionButtonClicker
     {
         private readonly IHttpClientFactory m_httpClientFactory;
-        private readonly Guid blockId;
-        private readonly Guid toDoListId;
-        private readonly Guid collectionId;
-        private readonly string token;
+        private readonly Guid m_blockId;
+        private readonly Guid m_toDoListId;
+        private readonly Guid m_collectionId;
+        private readonly string m_token;
 
         public NotionButtonClicker(IHttpClientFactory httpClientFactory)
         {
             m_httpClientFactory = httpClientFactory;
-            blockId = new Guid("0f5a4922-b70a-4672-9e72-a0757b105313");
-            toDoListId = new Guid("2bdfee17-7532-4986-82ae-9756c7840db3");
-            collectionId = new Guid("f46a8f52-4b96-4c0c-b025-c73646e198ef");
-            token =
+            m_blockId = new Guid("0f5a4922-b70a-4672-9e72-a0757b105313");
+            m_toDoListId = new Guid("2bdfee17-7532-4986-82ae-9756c7840db3");
+            m_collectionId = new Guid("f46a8f52-4b96-4c0c-b025-c73646e198ef");
+            m_token =
                 "v02%3Auser_token_or_cookies%3AJEgVnwWEzuK3w0sHqXwmmyhJyEomMQc00iUGjewJQKc35Jyi2Mdf5vWds6lvLdvwDiZvj6Wgbf1sacwMQdx_XLoWma3rBupGdUHYWvFATXSMnxylCjQolridnNvt8_GWshPn";
         }
 
@@ -35,10 +38,11 @@ namespace NotionAutomationButtonAutomation
             Console.WriteLine("status");
             try
             {
-                var userId = await GetUserId();
-                Console.WriteLine($"{userId}");
-                var spaceId = await GetSpaceId();
-                Console.WriteLine($"{spaceId}");
+                // var userId = await GetUserId();
+                // Console.WriteLine($"{userId}");
+                // var spaceId = await GetSpaceId();
+                // Console.WriteLine($"{spaceId}");
+                await UpdateBlockProperties(Guid.Parse("2776e0a6-fbfe-45ef-8ff2-14145037ce4d"),States.Doing);
             }
             catch (Exception ex)
             {
@@ -61,7 +65,7 @@ namespace NotionAutomationButtonAutomation
             {
                 Type = "block-space",
                 Name = "page",
-                BlockId = blockId,
+                BlockId = m_blockId,
                 ShouldDuplicate = false,
                 RequestedOnPublicdomain = false
             };
@@ -77,8 +81,30 @@ namespace NotionAutomationButtonAutomation
         
         private async Task<string> GetListOfBlocksToBeUpdated()
         {
+            
             var responseAsObject = await GetResponseAsync<string>("https://www.notion.so/api/v3/queryCollection?src=queryCollectionAction", HttpMethod.Post);
             return responseAsObject;
+        }
+
+        private async Task UpdateBlockProperties(Guid blockId, States state)
+        {
+            var body = new PropertiesObject
+            {
+                Properties = new PropertyObject
+                {
+                    Status = new Status
+                    {
+                        Select = new Select
+                        {
+                            Name = state.ToDescriptionString()
+                        }
+                    }
+                }
+            };
+
+            var bodyAsString = JsonSerializer.Serialize(body);
+            var response =
+                await GetResponseAsync<string>($"https://api.notion.com/v1/pages/{blockId}", HttpMethod.Patch, bodyAsString);
         }
 
         private async Task<T> GetResponseAsync<T>(string requestUri, HttpMethod httpMethod, string body = null)
