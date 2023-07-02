@@ -18,6 +18,7 @@ namespace NotionAutomationButtonAutomation
         private readonly IFilterFactory m_filterFactory;
         private readonly Guid m_blockId;
         private readonly string m_bearerToken;
+        private readonly string m_cookie;
 
         public NotionButtonClicker(IHttpClientFactory httpClientFactory, IFilterFactory filterFactory,
             IConfiguration configuration)
@@ -26,6 +27,7 @@ namespace NotionAutomationButtonAutomation
             m_filterFactory = filterFactory;
             m_blockId = configuration.GetValue<Guid>("blockId");
             m_bearerToken = configuration.GetValue<string>("bearerToken");
+            m_cookie = configuration.GetValue<string>("cookie");
         }
 
         public async Task ExecuteClickAsync()
@@ -39,27 +41,16 @@ namespace NotionAutomationButtonAutomation
                     var blockIds = await GetListOfBlocksToBeUpdated(filter.Item1);
                     foreach (var blockId in blockIds)
                     {
-                        Console.WriteLine(blockId);
+                        await UpdateBlockProperties(blockId, filter.Item2);
                     }
-                    //     foreach (var blockId in blockIds)
-                    //     {
-                    //         await UpdateBlockProperties(blockId, filter.Item2);
-                    //     }
                 }
+
+                Console.WriteLine("successfully updated the tasks");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Exception is thrown: {ex.Message}");
             }
-        }
-
-        private async Task<Guid> GetUserId()
-        {
-            var responseAsObject =
-                await GetResponseAsync<UsersObject>("https://api.notion.com/v1/users", HttpMethod.Get);
-
-            var userId = responseAsObject.Results.Single(p => p.Type == "person").Id;
-            return userId;
         }
 
         private async Task<Guid> GetSpaceId()
@@ -126,9 +117,9 @@ namespace NotionAutomationButtonAutomation
             httpRequestMessage.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", m_bearerToken);
             httpRequestMessage.Headers.Add("Notion-Version", "2022-06-28");
+            httpRequestMessage.Headers.Add("Cookie", m_cookie);
             var response = await httpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
-            var rst = await response.Content.ReadAsStringAsync();
             var responseAsObject =
                 await JsonSerializer.DeserializeAsync<T>(
                     await response.Content.ReadAsStreamAsync());
@@ -153,11 +144,11 @@ namespace NotionAutomationButtonAutomation
 
             return new List<Tuple<string, States>>
             {
-                new Tuple<string, States>(JsonSerializer.Serialize(todoTomorrowFilter, jsonSerializerOptions),
+                new Tuple<string, States>(JsonSerializer.Serialize(todoTomorrowFilter, jsonSerializerOptions).Replace("Filters","filters"),
                     States.Doing),
-                new Tuple<string, States>(JsonSerializer.Serialize(todoFilter, jsonSerializerOptions),
+                new Tuple<string, States>(JsonSerializer.Serialize(todoFilter, jsonSerializerOptions).Replace("Filters","filters"),
                     States.TodoTomorrow),
-                new Tuple<string, States>(JsonSerializer.Serialize(eventFilter, jsonSerializerOptions),
+                new Tuple<string, States>(JsonSerializer.Serialize(eventFilter, jsonSerializerOptions).Replace("Filters","filters"),
                     States.EventDone)
             };
         }

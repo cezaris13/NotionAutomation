@@ -30,7 +30,7 @@ namespace NotionAutomationButtonAutomation
 
             await ExecuteTask(host.Services);
 
-            await host.RunAsync();
+            // await host.RunAsync();
         }
 
         static async Task ExecuteTask(IServiceProvider hostProvider)
