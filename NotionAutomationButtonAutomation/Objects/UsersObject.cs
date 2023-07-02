@@ -25,16 +25,22 @@ namespace NotionAutomationButtonAutomation.Objects
     {
         [JsonPropertyName("object")] 
         public string Object { get; set; }
+        
         [JsonPropertyName("id")] 
         public Guid Id { get; set; }
+        
         [JsonPropertyName("name")] 
         public string Name { get; set; }
+        
         [JsonPropertyName("avatar_rul")] 
         public string AvatarUrl { get; set; }
+        
         [JsonPropertyName("type")] 
         public string Type { get; set; }
+        
         [JsonPropertyName("person")] 
         public object Person { get; set; }
+        
         [JsonPropertyName("bot")] 
         public object Bot { get; set; }
     }

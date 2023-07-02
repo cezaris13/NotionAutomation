@@ -1,48 +1,47 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using NotionAutomationButtonAutomation.Extensions;
 using NotionAutomationButtonAutomation.Objects;
 
 namespace NotionAutomationButtonAutomation
 {
-
-    
     public class NotionButtonClicker : INotionButtonClicker
     {
         private readonly IHttpClientFactory m_httpClientFactory;
+        private readonly IFilterFactory m_filterFactory;
         private readonly Guid m_blockId;
-        private readonly Guid m_toDoListId;
-        private readonly Guid m_collectionId;
-        private readonly string m_token;
+        private readonly string m_bearerToken;
 
-        public NotionButtonClicker(IHttpClientFactory httpClientFactory)
+        public NotionButtonClicker(IHttpClientFactory httpClientFactory, IFilterFactory filterFactory,
+            IConfiguration configuration)
         {
             m_httpClientFactory = httpClientFactory;
-            m_blockId = new Guid("0f5a4922-b70a-4672-9e72-a0757b105313");
-            m_toDoListId = new Guid("2bdfee17-7532-4986-82ae-9756c7840db3");
-            m_collectionId = new Guid("f46a8f52-4b96-4c0c-b025-c73646e198ef");
-            m_token =
-                "v02%3Auser_token_or_cookies%3AJEgVnwWEzuK3w0sHqXwmmyhJyEomMQc00iUGjewJQKc35Jyi2Mdf5vWds6lvLdvwDiZvj6Wgbf1sacwMQdx_XLoWma3rBupGdUHYWvFATXSMnxylCjQolridnNvt8_GWshPn";
+            m_filterFactory = filterFactory;
+            m_blockId = configuration.GetValue<Guid>("blockId");
+            m_bearerToken = configuration.GetValue<string>("bearerToken");
         }
 
         public async Task ExecuteClickAsync()
         {
-            Console.WriteLine("status");
             try
             {
-                // var userId = await GetUserId();
-                // Console.WriteLine($"{userId}");
-                // var spaceId = await GetSpaceId();
-                // Console.WriteLine($"{spaceId}");
-                await UpdateBlockProperties(Guid.Parse("2776e0a6-fbfe-45ef-8ff2-14145037ce4d"),States.Doing);
+                var spaceId = await GetSpaceId();
+                var filters = GetFilters(spaceId);
+                foreach (var filter in filters)
+                {
+                    var blockIds = await GetListOfBlocksToBeUpdated(filter.Item1);
+                    foreach (var blockId in blockIds)
+                    {
+                        await UpdateBlockProperties(blockId, filter.Item2);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -78,12 +77,12 @@ namespace NotionAutomationButtonAutomation
 
             return responseAsObject.SpaceId;
         }
-        
-        private async Task<string> GetListOfBlocksToBeUpdated()
+
+        private async Task<List<Guid>> GetListOfBlocksToBeUpdated(string body)
         {
-            
-            var responseAsObject = await GetResponseAsync<string>("https://www.notion.so/api/v3/queryCollection?src=queryCollectionAction", HttpMethod.Post);
-            return responseAsObject;
+            var responseAsObject = await GetResponseAsync<FilterResponseObject>(
+                "https://www.notion.so/api/v3/queryCollection?src=queryCollectionAction", HttpMethod.Post, body);
+            return responseAsObject.Result.ReducerResults.Results.BlockIds;
         }
 
         private async Task UpdateBlockProperties(Guid blockId, States state)
@@ -103,8 +102,8 @@ namespace NotionAutomationButtonAutomation
             };
 
             var bodyAsString = JsonSerializer.Serialize(body);
-            var response =
-                await GetResponseAsync<string>($"https://api.notion.com/v1/pages/{blockId}", HttpMethod.Patch, bodyAsString);
+            await GetResponseAsync<object>($"https://api.notion.com/v1/pages/{blockId}", HttpMethod.Patch,
+                bodyAsString);
         }
 
         private async Task<T> GetResponseAsync<T>(string requestUri, HttpMethod httpMethod, string body = null)
@@ -117,11 +116,11 @@ namespace NotionAutomationButtonAutomation
             };
             if (body != null)
             {
-                httpRequestMessage.Content = new StringContent(body,Encoding.UTF8,"application/json");
+                httpRequestMessage.Content = new StringContent(body, Encoding.UTF8, "application/json");
             }
 
             httpRequestMessage.Headers.Authorization =
-                new AuthenticationHeaderValue("Bearer", "secret_SdaJ2UQX71BrSgEy0CHeBOnwwO5rVufBIwNd8L9ddpE");
+                new AuthenticationHeaderValue("Bearer", m_bearerToken);
             httpRequestMessage.Headers.Add("Notion-Version", "2022-06-28");
             var response = await httpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
@@ -134,6 +133,26 @@ namespace NotionAutomationButtonAutomation
             }
 
             return responseAsObject;
+        }
+
+        private List<Tuple<string, States>> GetFilters(Guid spaceId)
+        {
+            var todoTomorrowFilter = m_filterFactory.CreateTodoTomorrowFilter(spaceId);
+            var todoFilter = m_filterFactory.CreateTodoFilter(spaceId);
+            var eventFilter = m_filterFactory.CreateEventFilter(spaceId);
+
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                IgnoreNullValues = true
+            };
+
+            return new List<Tuple<string, States>>
+            {
+                new Tuple<string, States>(JsonSerializer.Serialize(todoTomorrowFilter, jsonSerializerOptions),
+                    States.Doing),
+                // new Tuple<string, States>(JsonSerializer.Serialize(todoFilter, jsonSerializerOptions), States.TodoTomorrow),
+                // new Tuple<string, States>(JsonSerializer.Serialize(eventFilter, jsonSerializerOptions), States.EventDone)
+            };
         }
     }
 }
