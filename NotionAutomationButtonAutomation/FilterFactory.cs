@@ -21,17 +21,8 @@ namespace NotionAutomationButtonAutomation
         {
             return new FilterObject
             {
-                Source = new Source
-                {
-                    Type = "collection",
-                    Id = m_collectionId,
-                    SpaceId = spaceId,
-                },
-                CollectionView = new CollectionView
-                {
-                    Id = m_toDoListId,
-                    SpaceId = spaceId,
-                },
+                Source = CreateSource(spaceId),
+                CollectionView = CreateCollectionView(spaceId),
                 Loader = new Loader
                 {
                     Type = "reducer",
@@ -76,22 +67,7 @@ namespace NotionAutomationButtonAutomation
                         Operator = "and"
                     },
                     UserTimeZone = "Europe/Vilnius",
-                    Reducers = new Reducers
-                    {
-                        Results = new Results
-                        {
-                            Type = "results",
-                            Limit = 1000
-                        },
-                        Total = new Total
-                        {
-                            Type = "aggregation",
-                            Aggregation = new Aggregation
-                            {
-                                Aggregator = "count"
-                            }
-                        }
-                    }
+                    Reducers = CreateReducers()
                 }
             };
         }
@@ -100,77 +76,46 @@ namespace NotionAutomationButtonAutomation
         {
             return new FilterObject
             {
-                Source = new Source
-                {
-                    Type = "collection",
-                    Id = m_collectionId,
-                    SpaceId = spaceId,
-                },
-                CollectionView = new CollectionView
-                {
-                    Id = m_toDoListId,
-                    SpaceId = spaceId,
-                },
+                Source = CreateSource(spaceId),
+                CollectionView = CreateCollectionView(spaceId),
                 Loader = new Loader
                 {
                     Type = "reducer",
                     Filter = new FiltersList
                     {
-                        FiltersRec = new List<FiltersList>
+                        Filters = new List<FilterObjectWithProperty>
                         {
-                            new FiltersList
+                            new FilterObjectWithProperty
                             {
-                                Filters = new List<FilterObjectWithProperty>
+                                FilterObject = new OneFilterObject
                                 {
-                                    new FilterObjectWithProperty
+                                    Value = new Value
                                     {
-                                        FilterObject = new OneFilterObject
-                                        {
-                                            Value = new Value
-                                            {
-                                                Type = "exact",
-                                                ValueString = States.TodoTomorrow.ToDescriptionString()
-                                            },
-                                            Operator = "enum_is"
-                                        },
-                                        Property = "^OE@"
+                                        Type = "exact",
+                                        ValueString = States.Todo.ToDescriptionString()
                                     },
-                                    new FilterObjectWithProperty
-                                    {
-                                        FilterObject = new OneFilterObject
-                                        {
-                                            Value = new Value
-                                            {
-                                                Type = "relative",
-                                                ValueString = "today"
-                                            },
-                                            Operator = "date_is"
-                                        },
-                                        Property = "cZ:C"
-                                    }
+                                    Operator = "enum_is"
                                 },
-                                Operator = "and"
+                                Property = "^OE@"
+                            },
+                            new FilterObjectWithProperty
+                            {
+                                FilterObject = new OneFilterObject
+                                {
+                                    Value = new Value
+                                    {
+                                        Type = "relative",
+                                        ValueString = "tomorrow"
+                                    },
+                                    Operator = "date_is"
+                                },
+                                Property = "cZ:C"
                             }
                         },
                         Operator = "and"
                     },
                     UserTimeZone = "Europe/Vilnius",
-                    Reducers = new Reducers
-                    {
-                        Results = new Results
-                        {
-                            Type = "results",
-                            Limit = 1000
-                        },
-                        Total = new Total
-                        {
-                            Type = "aggregation",
-                            Aggregation = new Aggregation
-                            {
-                                Aggregator = "count"
-                            }
-                        }
-                    }
+                    Reducers = CreateReducers()
                 }
             };
         }
@@ -179,78 +124,86 @@ namespace NotionAutomationButtonAutomation
         {
             return new FilterObject
             {
-                Source = new Source
-                {
-                    Type = "collection",
-                    Id = m_collectionId,
-                    SpaceId = spaceId,
-                },
-                CollectionView = new CollectionView
-                {
-                    Id = m_toDoListId,
-                    SpaceId = spaceId,
-                },
+                Source = CreateSource(spaceId),
+                CollectionView = CreateCollectionView(spaceId),
                 Loader = new Loader
                 {
                     Type = "reducer",
                     Filter = new FiltersList
                     {
-                        FiltersRec = new List<FiltersList>
+                        Filters = new List<FilterObjectWithProperty>
                         {
-                            new FiltersList
+                            new FilterObjectWithProperty
                             {
-                                Filters = new List<FilterObjectWithProperty>
+                                FilterObject = new OneFilterObject
                                 {
-                                    new FilterObjectWithProperty
+                                    Value = new Value
                                     {
-                                        FilterObject = new OneFilterObject
-                                        {
-                                            Value = new Value
-                                            {
-                                                Type = "exact",
-                                                ValueString = States.TodoTomorrow.ToDescriptionString()
-                                            },
-                                            Operator = "enum_is"
-                                        },
-                                        Property = "^OE@"
+                                        Type = "exact",
+                                        ValueString = States.Event.ToDescriptionString()
                                     },
-                                    new FilterObjectWithProperty
-                                    {
-                                        FilterObject = new OneFilterObject
-                                        {
-                                            Value = new Value
-                                            {
-                                                Type = "relative",
-                                                ValueString = "today"
-                                            },
-                                            Operator = "date_is"
-                                        },
-                                        Property = "cZ:C"
-                                    }
+                                    Operator = "enum_is"
                                 },
-                                Operator = "and"
+                                Property = "^OE@"
+                            },
+                            new FilterObjectWithProperty
+                            {
+                                FilterObject = new OneFilterObject
+                                {
+                                    Value = new Value
+                                    {
+                                        Type = "relative",
+                                        ValueString = "today"
+                                    },
+                                    Operator = "date_is_before"
+                                },
+                                Property = "cZ:C"
                             }
                         },
                         Operator = "and"
                     },
                     UserTimeZone = "Europe/Vilnius",
-                    Reducers = new Reducers
+                    Reducers = CreateReducers()
+                }
+            };
+        }
+
+        private Reducers CreateReducers()
+        {
+            return new Reducers
+            {
+                Results = new Results
+                {
+                    Type = "results",
+                    Limit = 1000
+                },
+                Total = new Total
+                {
+                    Type = "aggregation",
+                    Aggregation = new Aggregation
                     {
-                        Results = new Results
-                        {
-                            Type = "results",
-                            Limit = 1000
-                        },
-                        Total = new Total
-                        {
-                            Type = "aggregation",
-                            Aggregation = new Aggregation
-                            {
-                                Aggregator = "count"
-                            }
-                        }
+                        Aggregator = "count"
                     }
                 }
+            };
+        }
+
+        private CollectionView CreateCollectionView(Guid spaceId)
+        {
+            return new CollectionView
+            {
+                Id = m_toDoListId,
+                SpaceId = spaceId,
+            };
+        }
+
+        private Source CreateSource(Guid spaceId)
+        {
+            return new Source
+            {
+                Type = "collection",
+                Id = m_collectionId,
+                SpaceId = spaceId,
             };
         }
     }

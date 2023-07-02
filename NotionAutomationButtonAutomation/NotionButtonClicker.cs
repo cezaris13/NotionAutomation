@@ -39,8 +39,12 @@ namespace NotionAutomationButtonAutomation
                     var blockIds = await GetListOfBlocksToBeUpdated(filter.Item1);
                     foreach (var blockId in blockIds)
                     {
-                        await UpdateBlockProperties(blockId, filter.Item2);
+                        Console.WriteLine(blockId);
                     }
+                    //     foreach (var blockId in blockIds)
+                    //     {
+                    //         await UpdateBlockProperties(blockId, filter.Item2);
+                    //     }
                 }
             }
             catch (Exception ex)
@@ -124,6 +128,7 @@ namespace NotionAutomationButtonAutomation
             httpRequestMessage.Headers.Add("Notion-Version", "2022-06-28");
             var response = await httpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
+            var rst = await response.Content.ReadAsStringAsync();
             var responseAsObject =
                 await JsonSerializer.DeserializeAsync<T>(
                     await response.Content.ReadAsStreamAsync());
@@ -150,8 +155,10 @@ namespace NotionAutomationButtonAutomation
             {
                 new Tuple<string, States>(JsonSerializer.Serialize(todoTomorrowFilter, jsonSerializerOptions),
                     States.Doing),
-                // new Tuple<string, States>(JsonSerializer.Serialize(todoFilter, jsonSerializerOptions), States.TodoTomorrow),
-                // new Tuple<string, States>(JsonSerializer.Serialize(eventFilter, jsonSerializerOptions), States.EventDone)
+                new Tuple<string, States>(JsonSerializer.Serialize(todoFilter, jsonSerializerOptions),
+                    States.TodoTomorrow),
+                new Tuple<string, States>(JsonSerializer.Serialize(eventFilter, jsonSerializerOptions),
+                    States.EventDone)
             };
         }
     }
