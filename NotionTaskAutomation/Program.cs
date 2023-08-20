@@ -20,10 +20,11 @@ class Program
 
             IConfiguration configuration = configurationBuilder.Build();
             services.AddHttpClient();
-            services.AddSingleton<IConfiguration>(provider => configuration);
+            services.AddSingleton(_ => configuration);
 
             services.AddSingleton<INotionButtonClicker, NotionButtonClicker>();
             services.AddSingleton<IFilterFactory, FilterFactory>();
+            services.AddSingleton<IEmailClient, EmailClient>();
         });
 
         var host = builder.Build();
@@ -37,7 +38,10 @@ class Program
     {
         var serviceScope = hostProvider.CreateScope();
         var serviceProvider = serviceScope.ServiceProvider;
-        var notionButtonClicker = serviceProvider.GetService<INotionButtonClicker>();
-        await notionButtonClicker.ExecuteClickAsync();
+        // var notionButtonClicker = serviceProvider.GetService<INotionButtonClicker>();
+        // await notionButtonClicker.ExecuteClickAsync();
+        
+        var emailClient = serviceProvider.GetService<IEmailClient>();
+        await emailClient.SendEmail();
     }
 }

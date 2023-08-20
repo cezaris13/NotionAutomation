@@ -1,0 +1,9 @@
+namespace TestProject1;
+
+public class NotionButtonClickerTests
+{
+    [Fact]
+    public void Test1()// todo in the future
+    {
+    }
+}

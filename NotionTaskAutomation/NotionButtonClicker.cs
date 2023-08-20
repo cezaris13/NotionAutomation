@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using NotionTaskAutomation.Extensions;
@@ -61,7 +61,7 @@ public class NotionButtonClicker : INotionButtonClicker
             Name = "page",
             BlockId = m_blockId,
             ShouldDuplicate = false,
-            RequestedOnPublicdomain = false
+            RequestedOnPublicDomain = false
         };
 
         var data = JsonSerializer.Serialize(publicPageData);
@@ -139,16 +139,16 @@ public class NotionButtonClicker : INotionButtonClicker
 
         var jsonSerializerOptions = new JsonSerializerOptions
         {
-            IgnoreNullValues = true
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
         return new List<Tuple<string, States>>
         {
-            new Tuple<string, States>(JsonSerializer.Serialize(todoTomorrowFilter, jsonSerializerOptions).Replace("Filters","filters"),
+            new(JsonSerializer.Serialize(todoTomorrowFilter, jsonSerializerOptions).Replace("Filters","filters"),
                 States.Doing),
-            new Tuple<string, States>(JsonSerializer.Serialize(todoFilter, jsonSerializerOptions).Replace("Filters","filters"),
+            new(JsonSerializer.Serialize(todoFilter, jsonSerializerOptions).Replace("Filters","filters"),
                 States.TodoTomorrow),
-            new Tuple<string, States>(JsonSerializer.Serialize(eventFilter, jsonSerializerOptions).Replace("Filters","filters"),
+            new(JsonSerializer.Serialize(eventFilter, jsonSerializerOptions).Replace("Filters","filters"),
                 States.EventDone)
         };
     }

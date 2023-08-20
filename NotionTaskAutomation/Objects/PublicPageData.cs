@@ -18,5 +18,5 @@ public class PublicPageData
     public bool ShouldDuplicate { get; set; }
     
     [JsonPropertyName("requestedOnPublicDomain")]
-    public bool RequestedOnPublicdomain { get; set; }
+    public bool RequestedOnPublicDomain { get; set; }
 }

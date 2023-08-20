@@ -17,9 +17,8 @@ public class FilterFactory : IFilterFactory
         m_collectionId = configuration.GetValue<Guid>("collectionId");
     }
 
-    public FilterObject CreateTodoTomorrowFilter(Guid spaceId)
-    {
-        return new FilterObject
+    public FilterObject CreateTodoTomorrowFilter(Guid spaceId) =>
+        new()
         {
             Source = CreateSource(spaceId),
             CollectionView = CreateCollectionView(spaceId),
@@ -30,11 +29,11 @@ public class FilterFactory : IFilterFactory
                 {
                     FiltersRec = new List<FiltersList>
                     {
-                        new FiltersList
+                        new()
                         {
                             Filters = new List<FilterObjectWithProperty>
                             {
-                                new FilterObjectWithProperty
+                                new()
                                 {
                                     FilterObject = new OneFilterObject
                                     {
@@ -47,7 +46,7 @@ public class FilterFactory : IFilterFactory
                                     },
                                     Property = "^OE@"
                                 },
-                                new FilterObjectWithProperty
+                                new()
                                 {
                                     FilterObject = new OneFilterObject
                                     {
@@ -70,11 +69,9 @@ public class FilterFactory : IFilterFactory
                 Reducers = CreateReducers()
             }
         };
-    }
 
-    public FilterObject CreateTodoFilter(Guid spaceId)
-    {
-        return new FilterObject
+    public FilterObject CreateTodoFilter(Guid spaceId) =>
+        new()
         {
             Source = CreateSource(spaceId),
             CollectionView = CreateCollectionView(spaceId),
@@ -85,7 +82,7 @@ public class FilterFactory : IFilterFactory
                 {
                     Filters = new List<FilterObjectWithProperty>
                     {
-                        new FilterObjectWithProperty
+                        new()
                         {
                             FilterObject = new OneFilterObject
                             {
@@ -98,7 +95,7 @@ public class FilterFactory : IFilterFactory
                             },
                             Property = "^OE@"
                         },
-                        new FilterObjectWithProperty
+                        new()
                         {
                             FilterObject = new OneFilterObject
                             {
@@ -118,11 +115,9 @@ public class FilterFactory : IFilterFactory
                 Reducers = CreateReducers()
             }
         };
-    }
 
-    public FilterObject CreateEventFilter(Guid spaceId)
-    {
-        return new FilterObject
+    public FilterObject CreateEventFilter(Guid spaceId) =>
+        new()
         {
             Source = CreateSource(spaceId),
             CollectionView = CreateCollectionView(spaceId),
@@ -133,7 +128,7 @@ public class FilterFactory : IFilterFactory
                 {
                     Filters = new List<FilterObjectWithProperty>
                     {
-                        new FilterObjectWithProperty
+                        new()
                         {
                             FilterObject = new OneFilterObject
                             {
@@ -146,7 +141,7 @@ public class FilterFactory : IFilterFactory
                             },
                             Property = "^OE@"
                         },
-                        new FilterObjectWithProperty
+                        new()
                         {
                             FilterObject = new OneFilterObject
                             {
@@ -166,11 +161,9 @@ public class FilterFactory : IFilterFactory
                 Reducers = CreateReducers()
             }
         };
-    }
 
-    private Reducers CreateReducers()
-    {
-        return new Reducers
+    private Reducers CreateReducers() =>
+        new()
         {
             Results = new Results
             {
@@ -186,24 +179,19 @@ public class FilterFactory : IFilterFactory
                 }
             }
         };
-    }
 
-    private CollectionView CreateCollectionView(Guid spaceId)
-    {
-        return new CollectionView
+    private CollectionView CreateCollectionView(Guid spaceId) =>
+        new()
         {
             Id = m_toDoListId,
             SpaceId = spaceId,
         };
-    }
 
-    private Source CreateSource(Guid spaceId)
-    {
-        return new Source
+    private Source CreateSource(Guid spaceId) =>
+        new()
         {
             Type = "collection",
             Id = m_collectionId,
             SpaceId = spaceId,
         };
-    }
 }
