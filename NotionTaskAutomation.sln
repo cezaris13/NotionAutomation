@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotionAutomationButtonAutomation", "NotionAutomationButtonAutomation\NotionAutomationButtonAutomation.csproj", "{40F3C8A3-7F5A-4BC6-A9FE-C73A7DE7F18C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotionTaskAutomation", "NotionTaskAutomation\NotionTaskAutomation.csproj", "{40F3C8A3-7F5A-4BC6-A9FE-C73A7DE7F18C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
