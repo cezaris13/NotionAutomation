@@ -4,5 +4,5 @@ namespace NotionTaskAutomation;
 
 public interface INotionButtonClicker
 {
-    Task ExecuteClickAsync();
+    Task<string> ExecuteClickAsync();
 }

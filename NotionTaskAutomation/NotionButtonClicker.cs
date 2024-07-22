@@ -30,7 +30,7 @@ public class NotionButtonClicker : INotionButtonClicker
         m_cookie = configuration.GetValue<string>("cookie");
     }
 
-    public async Task ExecuteClickAsync()
+    public async Task<string> ExecuteClickAsync()
     {
         try
         {
@@ -45,11 +45,11 @@ public class NotionButtonClicker : INotionButtonClicker
                 }
             }
 
-            Console.WriteLine("successfully updated the tasks");
+            return "Successfully updated the tasks";
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Exception is thrown: {ex.Message}");
+            return $"Exception is thrown: {ex.Message}";
         }
     }
 
