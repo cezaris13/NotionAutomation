@@ -1,30 +1,6 @@
-# --- Sample C# .NET App Dockerfile---
+FROM mcr.microsoft.com/dotnet/sdk:7.0@sha256:d32bd65cf5843f413e81f5d917057c82da99737cb1637e905a1a4bc2e7ec6c8d AS build-env
+WORKDIR /App
 
-### Builder Image ###
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS sdk
-
-# Add Any Builder Dependencies Here
-# RUN apt-get update && apt-get --no-install-recommends -y install <package>
-
-### Dev Environment ###
-## To Build: docker build --no-cache --target devenv -t app-dev .
-## To Run: docker run -it --rm -v $(pwd):/app app-dev
-# ASSUMES Volume mounted source
-# Runs as Root
-FROM sdk AS devenv
-# At least install vim (git is already present)
-RUN apt-get update && apt-get --no-install-recommends -y install vim
-# ASSUME project source is volume mounted into the container at path /app
-WORKDIR /app
-CMD bash
-
-### Deployment ###
-## To Build: docker build --no-cache -t app .
-## To Run: docker run -it --rm app
-
-## Builder Stage ##
-FROM sdk AS builder
-WORKDIR /app
 # Copy everything
 COPY . ./
 # Restore as distinct layers
@@ -32,15 +8,8 @@ RUN dotnet restore
 # Build and publish a release
 RUN dotnet publish -c Release -o out
 
-## Deployment Image ##
-# USE Runtime base image
-FROM mcr.microsoft.com/dotnet/runtime:6.0
-
-# Add a non-root user (deployer) to run the app
-RUN adduser --disabled-password --gecos '' deployer
-USER deployer
-
-# Copy the source to /app
-WORKDIR /app
-COPY --from=builder --chown=deployer /app/out .
-CMD ["dotnet", "MyDockerProj.Con.dll"]
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:7.0@sha256:c7d9ee6cd01afe9aa80642e577c7cec9f5d87f88e5d70bd36fd61072079bc55b
+WORKDIR /App
+COPY --from=build-env /App/out .
+ENTRYPOINT ["dotnet", "NotionTaskAutomation.dll"]
