@@ -5,9 +5,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using NotionTaskAutomation.Extensions;
 using NotionTaskAutomation.Objects;
 
 namespace NotionTaskAutomation;
@@ -15,90 +15,21 @@ namespace NotionTaskAutomation;
 public class NotionButtonClicker : INotionButtonClicker
 {
     private readonly IHttpClientFactory m_httpClientFactory;
-    private readonly IFilterFactory m_filterFactory;
-    private readonly Guid m_blockId;
     private readonly string m_bearerToken;
-    private readonly string m_cookie;
+    private readonly Guid m_databaseId;
 
-    public NotionButtonClicker(IHttpClientFactory httpClientFactory, IFilterFactory filterFactory,
+    public NotionButtonClicker(IHttpClientFactory httpClientFactory,
         IConfiguration configuration)
     {
         m_httpClientFactory = httpClientFactory;
-        m_filterFactory = filterFactory;
-        m_blockId = configuration.GetValue<Guid>("blockId");
+        
         m_bearerToken = configuration.GetValue<string>("bearerToken");
-        m_cookie = configuration.GetValue<string>("cookie");
-    }
-
-    public async Task<string> ExecuteClickAsync()
-    {
-        try
+        m_databaseId = configuration.GetValue<Guid>("databaseId");
+        if (m_bearerToken == null)
         {
-            var spaceId = await GetSpaceId();
-            var filters = GetFilters(spaceId);
-            foreach (var filter in filters)
-            {
-                var blockIds = await GetListOfBlocksToBeUpdated(filter.Item1);
-                foreach (var blockId in blockIds)
-                {
-                    await UpdateBlockProperties(blockId, filter.Item2);
-                }
-            }
-
-            return "Successfully updated the tasks";
+            m_bearerToken = Environment.GetEnvironmentVariable("bearerToken");
+            m_databaseId = Guid.Parse(Environment.GetEnvironmentVariable("databaseId") ?? "");
         }
-        catch (Exception ex)
-        {
-            return $"Exception is thrown: {ex.Message}";
-        }
-    }
-
-    private async Task<Guid> GetSpaceId()
-    {
-        var publicPageData = new PublicPageData
-        {
-            Type = "block-space",
-            Name = "page",
-            BlockId = m_blockId,
-            ShouldDuplicate = false,
-            RequestedOnPublicdomain = false
-        };
-
-        var data = JsonSerializer.Serialize(publicPageData);
-
-        var responseAsObject =
-            await GetResponseAsync<PageObject>("https://www.notion.so/api/v3/getPublicPageData", HttpMethod.Post,
-                data);
-
-        return responseAsObject.SpaceId;
-    }
-
-    private async Task<List<Guid>> GetListOfBlocksToBeUpdated(string body)
-    {
-        var responseAsObject = await GetResponseAsync<FilterResponseObject>(
-            "https://www.notion.so/api/v3/queryCollection?src=queryCollectionAction", HttpMethod.Post, body);
-        return responseAsObject.Result.ReducerResults.Results.BlockIds;
-    }
-
-    private async Task UpdateBlockProperties(Guid blockId, States state)
-    {
-        var body = new PropertiesObject
-        {
-            Properties = new PropertyObject
-            {
-                Status = new Status
-                {
-                    Select = new Select
-                    {
-                        Name = state.ToDescriptionString()
-                    }
-                }
-            }
-        };
-
-        var bodyAsString = JsonSerializer.Serialize(body);
-        await GetResponseAsync<object>($"https://api.notion.com/v1/pages/{blockId}", HttpMethod.Patch,
-            bodyAsString);
     }
 
     private async Task<T> GetResponseAsync<T>(string requestUri, HttpMethod httpMethod, string body = null)
@@ -117,7 +48,6 @@ public class NotionButtonClicker : INotionButtonClicker
         httpRequestMessage.Headers.Authorization =
             new AuthenticationHeaderValue("Bearer", m_bearerToken);
         httpRequestMessage.Headers.Add("Notion-Version", "2022-06-28");
-        httpRequestMessage.Headers.Add("Cookie", m_cookie);
         var response = await httpClient.SendAsync(httpRequestMessage);
         response.EnsureSuccessStatusCode();
         var responseAsObject =
@@ -131,25 +61,108 @@ public class NotionButtonClicker : INotionButtonClicker
         return responseAsObject;
     }
 
-    private List<Tuple<string, States>> GetFilters(Guid spaceId)
+    public async Task<List<string>> GetStates()
     {
-        var todoTomorrowFilter = m_filterFactory.CreateTodoTomorrowFilter(spaceId);
-        var todoFilter = m_filterFactory.CreateTodoFilter(spaceId);
-        var eventFilter = m_filterFactory.CreateEventFilter(spaceId);
+        var responseAsObject = await GetResponseAsync<StatesObject>(
+            $"https://api.notion.com/v1/databases/{m_databaseId}", HttpMethod.Get);
+        return responseAsObject.Properties.Status.Select.Options.Select(p => p.Name).ToList();
+    }
 
-        var jsonSerializerOptions = new JsonSerializerOptions
-        {
-            IgnoreNullValues = true
-        };
+    public async Task<List<TaskObject>> GetTasks()
+    {
+        Guid? continuationToken = null;
+        List<TaskObject> tasks = new();
+        var filter = ConstructFilter();
 
-        return new List<Tuple<string, States>>
+        do
         {
-            new Tuple<string, States>(JsonSerializer.Serialize(todoTomorrowFilter, jsonSerializerOptions).Replace("Filters","filters"),
-                States.Doing),
-            new Tuple<string, States>(JsonSerializer.Serialize(todoFilter, jsonSerializerOptions).Replace("Filters","filters"),
-                States.TodoTomorrow),
-            new Tuple<string, States>(JsonSerializer.Serialize(eventFilter, jsonSerializerOptions).Replace("Filters","filters"),
-                States.EventDone)
+            var response = await GetResponseAsync<QueryObject>(
+                $"https://api.notion.com/v1/databases/{m_databaseId}/query",
+                HttpMethod.Post,
+                JsonSerializer.Serialize(
+                    new TasksFilter
+                    {
+                        Filter = filter,
+                        StartCursor = continuationToken
+                    },
+                    new JsonSerializerOptions()
+                    {
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    })    
+                );
+            continuationToken = response.NextCursor;
+            tasks = tasks.Concat(response.Results).ToList();
+        } while (continuationToken != null);
+
+        return tasks;
+    }
+
+    public async Task UpdateTasks()
+    {
+        var tasks = await GetTasks();
+        var states = await GetStates();
+
+        foreach (var task in tasks)
+        {
+            var nextState = states[states.IndexOf(task.Properties.Status.Select.Name) + 1];
+            var filter = new UpdateTaskObject
+            {
+                Properties = new PropertyObject
+                {
+                    Status = new Status
+                    {
+                        Select = new Select
+                        {
+                            Name = nextState
+                        }
+                    }
+                }
+            };
+            
+            await GetResponseAsync<StatesObject>(
+                $"https://api.notion.com/v1/pages/{task.Id}",
+                HttpMethod.Patch,
+                JsonSerializer.Serialize(
+                    filter,
+                    new JsonSerializerOptions()
+                    {
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    })     
+                );
+        }
+    }
+
+    private Filter ConstructFilter()
+    {
+        return new Filter()
+        {
+            Or = new List<Or>
+            {
+                new()
+                {
+                    And = new List<And>
+                    {
+                        new() { Property = "Status", Select = new FilterSelect() { Equals = "TODO tomorrow" } },
+                        new() { Property = "Date", Date = new FilterDateObject() { OnOrBefore = DateTime.Today.Date.ToString("yyyy-MM-dd") } },
+                    }
+                },
+                new()
+                {
+                    And = new List<And>
+                    {
+                        new() { Property = "Status", Select = new FilterSelect() { Equals = "Event" } },
+                        new() { Property = "Date", Date = new FilterDateObject() { Before = DateTime.Today.Date.ToString("yyyy-MM-dd") } },
+                    }
+                },
+                new()
+                {
+                    And = new List<And>
+                    {
+                        new() { Property = "Status", Select = new FilterSelect() { Equals = "To Do" } },
+                        new() { Property = "Date", Date = new FilterDateObject() { OnOrBefore = DateTime.Today.AddDays(1).Date.ToString("yyyy-MM-dd") } },
+                    }
+                }
+            }
         };
     }
 }
