@@ -1,0 +1,12 @@
+name: Load test
+on:
+  schedule:
+    - cron: '*/1 * * * *'
+
+jobs:
+  update-tasks:
+    name: Update Tasks /
+    runs-on: ubuntu-latest
+    steps:
+      - name: curl
+        run: curl https://notionautomation-ofkv.onrender.com/api/updateTasks
