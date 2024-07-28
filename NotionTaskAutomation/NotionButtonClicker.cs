@@ -24,12 +24,12 @@ public class NotionButtonClicker : INotionButtonClicker
         m_httpClientFactory = httpClientFactory;
         
         m_bearerToken = configuration.GetValue<string>("bearerToken");
-        m_databaseId = configuration.GetValue<Guid>("databaseId");
-        if (m_bearerToken == null)
+        if (string.IsNullOrEmpty(m_bearerToken))
         {
             m_bearerToken = Environment.GetEnvironmentVariable("bearerToken");
             m_databaseId = Guid.Parse(Environment.GetEnvironmentVariable("databaseId") ?? "");
         }
+        m_databaseId = configuration.GetValue<Guid>("databaseId");
     }
 
     private async Task<T> GetResponseAsync<T>(string requestUri, HttpMethod httpMethod, string body = null)
