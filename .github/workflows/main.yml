@@ -1,4 +1,4 @@
-name: Load test
+name: Update tasks for Notion
 on:
   schedule:
     - cron: '*/1 * * * *'
