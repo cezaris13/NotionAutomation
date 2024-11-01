@@ -6,7 +6,7 @@ namespace NotionTaskAutomation.Db;
 
 public class NotionDbContext : DbContext
 {
-    public DbSet<NotionPageRule> NotionPageRules { get; set; }
+    public DbSet<NotionDatabaseRule> NotionDatabaseRules { get; }
 
     public string DbPath { get; }
 

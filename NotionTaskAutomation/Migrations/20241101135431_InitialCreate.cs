@@ -12,11 +12,11 @@ namespace NotionTaskAutomation.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "NotionPageRules",
+                name: "NotionDatabaseRules",
                 columns: table => new
                 {
                     RuleId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    PageId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    DatabaseId = table.Column<Guid>(type: "TEXT", nullable: false),
                     StartingState = table.Column<string>(type: "TEXT", nullable: true),
                     EndingState = table.Column<string>(type: "TEXT", nullable: true),
                     OnDay = table.Column<string>(type: "TEXT", nullable: true),
@@ -24,7 +24,7 @@ namespace NotionTaskAutomation.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_NotionPageRules", x => x.RuleId);
+                    table.PrimaryKey("PK_NotionDatabaseRules", x => x.RuleId);
                 });
         }
 
@@ -32,7 +32,7 @@ namespace NotionTaskAutomation.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "NotionPageRules");
+                name: "NotionDatabaseRules");
         }
     }
 }

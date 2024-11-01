@@ -11,7 +11,7 @@ using NotionTaskAutomation.Db;
 namespace NotionTaskAutomation.Migrations
 {
     [DbContext(typeof(NotionDbContext))]
-    [Migration("20241101132646_InitialCreate")]
+    [Migration("20241101135431_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,10 +20,13 @@ namespace NotionTaskAutomation.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0-rc.2.24474.1");
 
-            modelBuilder.Entity("NotionTaskAutomation.Db.NotionDbContext+NotionPageRule", b =>
+            modelBuilder.Entity("NotionTaskAutomation.Objects.NotionDatabaseRule", b =>
                 {
                     b.Property<Guid>("RuleId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("DatabaseId")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DayOffset")
@@ -35,15 +38,12 @@ namespace NotionTaskAutomation.Migrations
                     b.Property<string>("OnDay")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("PageId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("StartingState")
                         .HasColumnType("TEXT");
 
                     b.HasKey("RuleId");
 
-                    b.ToTable("NotionPageRules");
+                    b.ToTable("NotionDatabaseRules");
                 });
 #pragma warning restore 612, 618
         }

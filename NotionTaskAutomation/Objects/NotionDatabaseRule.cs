@@ -1,9 +1,13 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace NotionTaskAutomation.Objects;
 
-public class NotionPageRuleObject
+public class NotionDatabaseRule
 {
+    [Key]
+    public Guid RuleId { get; set; }
+    public Guid DatabaseId { get; set; }
     public string StartingState { get; set; }
     public string EndingState { get; set; }
     public string OnDay { get; set; }

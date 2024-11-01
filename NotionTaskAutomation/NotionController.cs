@@ -29,153 +29,153 @@ public class NotionController : Controller
     }
 
     [HttpGet]
-    [Route("getPageRules")]
-    public async Task<ActionResult<List<NotionPageRule>>> GetNotionPageRules(Guid notionPageId)
+    [Route("getDatabaseRules")]
+    public async Task<ActionResult<List<NotionDatabaseRule>>> GetNotionDatabaseRules(Guid notionDatabaseId)
     {
-        var notionPageIds = await m_notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if (!notionPageIds.Contains(notionPageId))
-            return NotFound("Notion page not found");
+        if (!notionDatabaseIds.Contains(notionDatabaseId))
+            return NotFound("Notion database not found");
 
-        return m_notionButtonClicker.GetNotionPageRules(notionPageId);
+        return m_notionButtonClicker.GetNotionDatabaseRules(notionDatabaseId);
     }
 
     [HttpGet]
-    [Route("getPageRule")]
-    public async Task<ActionResult<NotionPageRule>> GetNotionPageRule(Guid notionPageRuleId)
+    [Route("getDatabaseRule")]
+    public async Task<ActionResult<NotionDatabaseRule>> GetNotionDatabaseRule(Guid notionDatabaseRuleId)
     {
-        var notionPageIds = await m_notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        var notionPageRule =
-            await m_notionDbContext.NotionPageRules.FirstOrDefaultAsync(p => p.RuleId == notionPageRuleId);
-        if (!notionPageIds.Contains(notionPageRule.PageId))
-            return NotFound("Notion page not found");
+        var notionDatabaseRule =
+            await m_notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleId);
+        if (!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
+            return NotFound("Notion database not found");
 
-        return notionPageRule;
+        return notionDatabaseRule;
     }
 
     [HttpPatch]
-    [Route("modifyPageRule")]
-    public async Task<ActionResult> ModifyNotionPageRule(Guid notionPageId,
-        NotionPageRule notionPageRuleObject)
+    [Route("modifyDatabaseRule")]
+    public async Task<ActionResult> ModifyNotionDatabaseRule(Guid notionDatabaseId,
+        NotionDatabaseRule notionDatabaseRuleObject)
     {
-        var notionPageIds = await m_notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if (!notionPageIds.Contains(notionPageId))
-            return NotFound("Notion page not found");
+        if (!notionDatabaseIds.Contains(notionDatabaseId))
+            return NotFound("Notion database not found");
 
-        var states = await m_notionButtonClicker.GetStates(notionPageId);
+        var states = await m_notionButtonClicker.GetStates(notionDatabaseId);
 
-        if (states.FindIndex(p => p == notionPageRuleObject.StartingState) == -1 ||
-            states.FindIndex(p => p == notionPageRuleObject.EndingState) == -1)
+        if (states.FindIndex(p => p == notionDatabaseRuleObject.StartingState) == -1 ||
+            states.FindIndex(p => p == notionDatabaseRuleObject.EndingState) == -1)
             return BadRequest("Notion page start or end state is invalid");
 
-        var notionPageRule =
-            await m_notionDbContext.NotionPageRules.FirstOrDefaultAsync(p => p.RuleId == notionPageRuleObject.RuleId);
+        var notionDatabaseRule =
+            await m_notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleObject.RuleId);
 
-        if (notionPageRule == null)
+        if (notionDatabaseRule == null)
             return NotFound("Notion page rule not found");
 
-        notionPageRule.PageId = notionPageId;
-        notionPageRule.DayOffset = notionPageRuleObject.DayOffset;
-        notionPageRule.StartingState = notionPageRuleObject.StartingState;
-        notionPageRule.EndingState = notionPageRuleObject.EndingState;
-        notionPageRule.OnDay = notionPageRuleObject.OnDay;
+        notionDatabaseRule.DatabaseId = notionDatabaseId;
+        notionDatabaseRule.DayOffset = notionDatabaseRuleObject.DayOffset;
+        notionDatabaseRule.StartingState = notionDatabaseRuleObject.StartingState;
+        notionDatabaseRule.EndingState = notionDatabaseRuleObject.EndingState;
+        notionDatabaseRule.OnDay = notionDatabaseRuleObject.OnDay;
 
-        m_notionDbContext.NotionPageRules.Update(notionPageRule);
+        m_notionDbContext.NotionDatabaseRules.Update(notionDatabaseRule);
         await m_notionDbContext.SaveChangesAsync();
         return Ok();
     }
 
     [HttpPost]
-    [Route("addPageRule")]
-    public async Task<ActionResult> AddNotionPageRule(Guid notionPageId, NotionPageRuleObject notionPageRuleObject)
+    [Route("addDatabaseRule")]
+    public async Task<ActionResult> AddNotionDatabaseRule(Guid notionDatabaseId, NotionDatabaseRuleObject notionDatabaseRuleObject)
     {
-        var notionPageIds = await m_notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if (!notionPageIds.Contains(notionPageId))
-            return NotFound("Notion page not found");
+        if (!notionDatabaseIds.Contains(notionDatabaseId))
+            return NotFound("Notion database not found");
 
-        var states = await m_notionButtonClicker.GetStates(notionPageId);
+        var states = await m_notionButtonClicker.GetStates(notionDatabaseId);
 
-        if (states.FindIndex(p => p == notionPageRuleObject.StartingState) == -1 ||
-            states.FindIndex(p => p == notionPageRuleObject.EndingState) == -1)
+        if (states.FindIndex(p => p == notionDatabaseRuleObject.StartingState) == -1 ||
+            states.FindIndex(p => p == notionDatabaseRuleObject.EndingState) == -1)
             return BadRequest("Notion page start or end state is invalid");
 
-        var notionPageRule = new NotionPageRule
+        var notionDatabaseRule = new NotionDatabaseRule
         {
             RuleId = Guid.NewGuid(),
-            PageId = notionPageId,
-            DayOffset = notionPageRuleObject.DayOffset,
-            OnDay = notionPageRuleObject.OnDay,
-            StartingState = notionPageRuleObject.StartingState,
-            EndingState = notionPageRuleObject.EndingState
+            DatabaseId = notionDatabaseId,
+            DayOffset = notionDatabaseRuleObject.DayOffset,
+            OnDay = notionDatabaseRuleObject.OnDay,
+            StartingState = notionDatabaseRuleObject.StartingState,
+            EndingState = notionDatabaseRuleObject.EndingState
         };
 
-        await m_notionDbContext.NotionPageRules.AddAsync(notionPageRule);
+        await m_notionDbContext.NotionDatabaseRules.AddAsync(notionDatabaseRule);
         await m_notionDbContext.SaveChangesAsync();
         return Ok();
     }
 
     [HttpDelete]
-    [Route("removePageRule")]
-    public async Task<ActionResult> DeleteNotionPageRule(Guid notionPageRuleId)
+    [Route("removeDatabaseRule")]
+    public async Task<ActionResult> DeleteNotionDatabaseRule(Guid notionDatabaseRuleId)
     {
-        var notionPageRule = await m_notionDbContext.NotionPageRules.FirstAsync(p => p.RuleId == notionPageRuleId);
-        var notionPageIds = await m_notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseRule = await m_notionDbContext.NotionDatabaseRules.FirstAsync(p => p.RuleId == notionDatabaseRuleId);
+        var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if (!notionPageIds.Contains(notionPageRule.PageId))
-            return NotFound("Notion page not found");
+        if (!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
+            return NotFound("Notion database not found");
 
-        m_notionDbContext.NotionPageRules.Remove(notionPageRule);
+        m_notionDbContext.NotionDatabaseRules.Remove(notionDatabaseRule);
         await m_notionDbContext.SaveChangesAsync();
         return Ok();
     }
 
     [HttpGet]
     [Route("getStates")]
-    public async Task<ActionResult<List<string>>> GetStates(Guid notionPageId) {
-        var notionPageIds = await m_notionButtonClicker.GetSharedDatabases();
+    public async Task<ActionResult<List<string>>> GetStates(Guid notionDatabaseId) {
+        var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if(!notionPageIds.Contains(notionPageId))
-            return NotFound("Notion page not found");
+        if(!notionDatabaseIds.Contains(notionDatabaseId))
+            return NotFound("Notion database not found");
 
-        return await m_notionButtonClicker.GetStates(notionPageId);
+        return await m_notionButtonClicker.GetStates(notionDatabaseId);
     }
 
     [HttpGet]
     [Route("getTasks")]
-    public async Task<ActionResult<List<TaskObject>>> GetTasks(Guid notionPageId)
+    public async Task<ActionResult<List<TaskObject>>> GetTasks(Guid notionDatabaseId)
     {
-        var notionPageIds = await m_notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if(!notionPageIds.Contains(notionPageId))
-            return NotFound("Notion page not found");
+        if(!notionDatabaseIds.Contains(notionDatabaseId))
+            return NotFound("Notion database not found");
 
-        return await m_notionButtonClicker.GetTasks(notionPageId);
+        return await m_notionButtonClicker.GetTasks(notionDatabaseId);
     }
 
     [HttpGet]
-    [Route("updateNotionPage")]
-    public async Task<ActionResult> UpdateTasksForDatabase(Guid notionPageId)
+    [Route("updateNotionDatabase")]
+    public async Task<ActionResult> UpdateTasksForDatabase(Guid notionDatabaseId)
     {
-        var notionPageIds = await m_notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if(!notionPageIds.Contains(notionPageId))
-            return NotFound("Notion page not found");
+        if(!notionDatabaseIds.Contains(notionDatabaseId))
+            return NotFound("Notion database not found");
 
-        await m_notionButtonClicker.UpdateTasks(notionPageId);
+        await m_notionButtonClicker.UpdateTasks(notionDatabaseId);
 
         return Ok();
     }
 
     [HttpGet]
-    [Route("updateNotionPages")]
+    [Route("updateNotionDatabases")]
     public async Task<ActionResult> UpdateTasksForDatabases() {
-        var notionPageIds = await m_notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        foreach (var notionPageId in notionPageIds)
-            await m_notionButtonClicker.UpdateTasks(notionPageId);
+        foreach (var notionDatabaseId in notionDatabaseIds)
+            await m_notionButtonClicker.UpdateTasks(notionDatabaseId);
 
         return Ok();
     }

@@ -7,9 +7,9 @@ namespace NotionTaskAutomation;
 
 public interface INotionButtonClicker
 {
-    Task<List<TaskObject>> GetTasks(Guid notionPageId);
-    Task<List<string>> GetStates(Guid notionPageId);
-    Task UpdateTasks(Guid notionPageId);
-    List<NotionPageRule> GetNotionPageRules(Guid notionPageId);
+    Task<List<TaskObject>> GetTasks(Guid notionDatabaseId);
+    Task<List<string>> GetStates(Guid notionDatabaseId);
+    Task UpdateTasks(Guid notionDatabaseId);
+    List<NotionDatabaseRule> GetNotionDatabaseRules(Guid notionDatabaseId);
     Task<List<Guid>> GetSharedDatabases();
 }

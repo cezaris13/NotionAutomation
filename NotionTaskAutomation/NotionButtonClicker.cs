@@ -73,25 +73,25 @@ public class NotionButtonClicker : INotionButtonClicker
         return responseAsObject.Results.Select(p => p.Id).ToList();
     }
 
-    public async Task<List<string>> GetStates(Guid notionPageId)
+    public async Task<List<string>> GetStates(Guid notionDatabaseId)
     {
         var responseAsObject = await GetResponseAsync<StatesObject>(
-            $"https://api.notion.com/v1/databases/{notionPageId}", HttpMethod.Get);
+            $"https://api.notion.com/v1/databases/{notionDatabaseId}", HttpMethod.Get);
 
         return responseAsObject.Properties.Status.Select.Options.Select(p => p.Name).ToList();
     }
 
-    public async Task<List<TaskObject>> GetTasks(Guid notionPageId)
+    public async Task<List<TaskObject>> GetTasks(Guid notionDatabaseId)
     {
         Guid? continuationToken = null;
         List<TaskObject> tasks = new();
-        var notionPageRules = GetNotionPageRules(notionPageId);
+        var notionPageRules = GetNotionDatabaseRules(notionDatabaseId);
         var filter = ConstructFilter(notionPageRules);
 
         do
         {
             var response = await GetResponseAsync<QueryObject>(
-                $"https://api.notion.com/v1/databases/{notionPageId}/query",
+                $"https://api.notion.com/v1/databases/{notionDatabaseId}/query",
                 HttpMethod.Post,
                 JsonSerializer.Serialize(
                     new TasksFilter
@@ -111,10 +111,10 @@ public class NotionButtonClicker : INotionButtonClicker
         return tasks;
     }
 
-    public async Task UpdateTasks(Guid notionPageId)
+    public async Task UpdateTasks(Guid notionDatabaseId)
     {
-        var tasks = await GetTasks(notionPageId);
-        var notionPageRules = GetNotionPageRules(notionPageId);
+        var tasks = await GetTasks(notionDatabaseId);
+        var notionPageRules = GetNotionDatabaseRules(notionDatabaseId);
 
         foreach (var task in tasks)
         {
@@ -146,12 +146,12 @@ public class NotionButtonClicker : INotionButtonClicker
         }
     }
 
-    public List<NotionPageRule> GetNotionPageRules(Guid notionPageId)
+    public List<NotionDatabaseRule> GetNotionDatabaseRules(Guid notionDatabaseId)
     {
-        return m_notionDbContext.NotionPageRules.Where(p => p.PageId == notionPageId).ToList();
+        return m_notionDbContext.NotionDatabaseRules.Where(p => p.DatabaseId == notionDatabaseId).ToList();
     }
 
-    private Filter ConstructFilter(List<NotionPageRule> notionPageRules)
+    private Filter ConstructFilter(List<NotionDatabaseRule> notionPageRules)
     {
         return new Filter()
         {
