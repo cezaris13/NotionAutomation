@@ -54,11 +54,6 @@ public class NotionButtonClicker : INotionButtonClicker
         return responseAsObject.Properties.Status.Select.Options.Select(p => p.Name).ToList();
     }
 
-    public bool IsAuthorized()
-    {
-        return !IsNullOrEmpty(GetBearerToken());
-    }
-
     public async Task<List<TaskObject>> GetTasks(Guid notionDatabaseId)
     {
         Guid? continuationToken = null;
