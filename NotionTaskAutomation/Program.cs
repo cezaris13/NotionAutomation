@@ -1,42 +1,59 @@
-﻿using System.IO;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
 using NotionTaskAutomation.Db;
 
 namespace NotionTaskAutomation;
 
-class Program
+internal class Program
 {
-    static async Task Main(string[] args)
+    private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotionAutomation", Version = "v1" });
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme (Example: 'Bearer 12345abcdef')",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.ApiKey,
+                BearerFormat = "JWT",
+                Scheme = "Bearer"
+            });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
         });
         builder.Services.AddMvcCore();
         builder.Services.AddMvc();
         builder.Services.AddHttpClient();
-        
-        var configurationBuilder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false);
-        IConfiguration configuration = configurationBuilder.Build();
-        
-        builder.Services.AddSingleton(_ => configuration);
+
         builder.Services.AddSingleton<INotionButtonClicker, NotionButtonClicker>();
+        builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         builder.Services.AddDbContext<NotionDbContext>();
-        
+
         var host = builder.Build();
         host.UseSwagger();
-        host.UseSwaggerUI(options =>
-        {
-            options.SwaggerEndpoint("v1/swagger.json", "v1");
-        });
-        
+        host.UseSwaggerUI(options => { options.SwaggerEndpoint("v1/swagger.json", "v1"); });
+
         host.MapControllers();
 
         await host.RunAsync();

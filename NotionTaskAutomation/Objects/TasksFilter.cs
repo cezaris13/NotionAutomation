@@ -8,7 +8,7 @@ public class TasksFilter
 {
     [JsonPropertyName("start_cursor")]
     public Guid? StartCursor { get; set; }
-    
+
     [JsonPropertyName("filter")]
     public Filter Filter { get; set; }
 }
@@ -29,10 +29,10 @@ public class And
 {
     [JsonPropertyName("property")]
     public string Property { get; set; }
-    
+
     [JsonPropertyName("select")]
     public FilterSelect Select { get; set; }
-    
+
     [JsonPropertyName("date")]
     public FilterDateObject Date { get; set; }
 }
@@ -40,15 +40,14 @@ public class And
 public class FilterSelect
 {
     [JsonPropertyName("equals")]
-    public string Equals { get; set; }
+    public new string Equals { get; set; }
 }
 
 public class FilterDateObject
 {
     [JsonPropertyName("on_or_before")]
     public string OnOrBefore { get; set; }
-    
+
     [JsonPropertyName("before")]
     public string Before { get; set; }
 }
-

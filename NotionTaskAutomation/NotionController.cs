@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NotionTaskAutomation.Db;
@@ -25,6 +26,9 @@ public class NotionController : Controller
     [Route("getSharedDatabases")]
     public async Task<ActionResult<List<Guid>>> GetSharedDatabases()
     {
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
         return await m_notionButtonClicker.GetSharedDatabases();
     }
 
@@ -32,6 +36,9 @@ public class NotionController : Controller
     [Route("getDatabaseRules")]
     public async Task<ActionResult<List<NotionDatabaseRule>>> GetNotionDatabaseRules(Guid notionDatabaseId)
     {
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
         var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseId))
@@ -44,6 +51,9 @@ public class NotionController : Controller
     [Route("getDatabaseRule")]
     public async Task<ActionResult<NotionDatabaseRule>> GetNotionDatabaseRule(Guid notionDatabaseRuleId)
     {
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
         var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
         var notionDatabaseRule =
@@ -59,6 +69,9 @@ public class NotionController : Controller
     public async Task<ActionResult> ModifyNotionDatabaseRule(Guid notionDatabaseId,
         NotionDatabaseRule notionDatabaseRuleObject)
     {
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
         var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseId))
@@ -71,7 +84,8 @@ public class NotionController : Controller
             return BadRequest("Notion page start or end state is invalid");
 
         var notionDatabaseRule =
-            await m_notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleObject.RuleId);
+            await m_notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p =>
+                p.RuleId == notionDatabaseRuleObject.RuleId);
 
         if (notionDatabaseRule == null)
             return NotFound("Notion page rule not found");
@@ -89,8 +103,12 @@ public class NotionController : Controller
 
     [HttpPost]
     [Route("addDatabaseRule")]
-    public async Task<ActionResult> AddNotionDatabaseRule(Guid notionDatabaseId, NotionDatabaseRuleObject notionDatabaseRuleObject)
+    public async Task<ActionResult> AddNotionDatabaseRule(Guid notionDatabaseId,
+        NotionDatabaseRuleObject notionDatabaseRuleObject)
     {
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
         var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseId))
@@ -121,7 +139,11 @@ public class NotionController : Controller
     [Route("removeDatabaseRule")]
     public async Task<ActionResult> DeleteNotionDatabaseRule(Guid notionDatabaseRuleId)
     {
-        var notionDatabaseRule = await m_notionDbContext.NotionDatabaseRules.FirstAsync(p => p.RuleId == notionDatabaseRuleId);
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
+        var notionDatabaseRule =
+            await m_notionDbContext.NotionDatabaseRules.FirstAsync(p => p.RuleId == notionDatabaseRuleId);
         var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
@@ -134,10 +156,14 @@ public class NotionController : Controller
 
     [HttpGet]
     [Route("getStates")]
-    public async Task<ActionResult<List<string>>> GetStates(Guid notionDatabaseId) {
+    public async Task<ActionResult<List<string>>> GetStates(Guid notionDatabaseId)
+    {
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
         var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if(!notionDatabaseIds.Contains(notionDatabaseId))
+        if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
         return await m_notionButtonClicker.GetStates(notionDatabaseId);
@@ -147,9 +173,12 @@ public class NotionController : Controller
     [Route("getTasks")]
     public async Task<ActionResult<List<TaskObject>>> GetTasks(Guid notionDatabaseId)
     {
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
         var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if(!notionDatabaseIds.Contains(notionDatabaseId))
+        if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
         return await m_notionButtonClicker.GetTasks(notionDatabaseId);
@@ -159,9 +188,12 @@ public class NotionController : Controller
     [Route("updateNotionDatabase")]
     public async Task<ActionResult> UpdateTasksForDatabase(Guid notionDatabaseId)
     {
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
         var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
-        if(!notionDatabaseIds.Contains(notionDatabaseId))
+        if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
         await m_notionButtonClicker.UpdateTasks(notionDatabaseId);
@@ -171,7 +203,11 @@ public class NotionController : Controller
 
     [HttpGet]
     [Route("updateNotionDatabases")]
-    public async Task<ActionResult> UpdateTasksForDatabases() {
+    public async Task<ActionResult> UpdateTasksForDatabases()
+    {
+        if(!m_notionButtonClicker.IsAuthorized())
+            return Unauthorized();
+        
         var notionDatabaseIds = await m_notionButtonClicker.GetSharedDatabases();
 
         foreach (var notionDatabaseId in notionDatabaseIds)

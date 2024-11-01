@@ -12,7 +12,7 @@ public class SearchFilterObject
 {
     [JsonPropertyName("value")]
     public string Value { get; set; }
-    
+
     [JsonPropertyName("property")]
     public string Property { get; set; }
 }

@@ -12,4 +12,6 @@ public interface INotionButtonClicker
     Task UpdateTasks(Guid notionDatabaseId);
     List<NotionDatabaseRule> GetNotionDatabaseRules(Guid notionDatabaseId);
     Task<List<Guid>> GetSharedDatabases();
+    bool IsAuthorized();
+
 }

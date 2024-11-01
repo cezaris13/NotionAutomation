@@ -1,5 +1,3 @@
-using System;
-
 namespace NotionTaskAutomation.Objects;
 
 public class NotionDatabaseRuleObject
