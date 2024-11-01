@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using NotionTaskAutomation.Db;
 
 namespace NotionTaskAutomation;
 
@@ -24,15 +25,18 @@ class Program
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false);
         IConfiguration configuration = configurationBuilder.Build();
-        // services.AddHttpClient();
+        
         builder.Services.AddSingleton(_ => configuration);
         builder.Services.AddSingleton<INotionButtonClicker, NotionButtonClicker>();
+        builder.Services.AddDbContext<NotionDbContext>();
+        
         var host = builder.Build();
         host.UseSwagger();
         host.UseSwaggerUI(options =>
         {
             options.SwaggerEndpoint("v1/swagger.json", "v1");
         });
+        
         host.MapControllers();
 
         await host.RunAsync();
