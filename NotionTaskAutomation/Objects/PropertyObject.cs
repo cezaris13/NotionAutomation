@@ -7,9 +7,6 @@ public class PropertyObject
 {
     [JsonPropertyName("Status")]
     public Status Status { get; set; }
-
-    [JsonPropertyName("Date")]
-    public DateObject Date { get; set; }
 }
 
 public class Status
@@ -22,16 +19,4 @@ public class Select
 {
     [JsonPropertyName("name")]
     public string Name { get; set; }
-}
-
-public class DateObject
-{
-    [JsonPropertyName("date")]
-    public DateTimeObject DateTimeObject { get; set; }
-}
-
-public class DateTimeObject
-{
-    [JsonPropertyName("start")]
-    public DateTime Date { get; set; }
 }

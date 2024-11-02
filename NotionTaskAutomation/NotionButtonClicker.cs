@@ -14,20 +14,16 @@ using static System.String;
 
 namespace NotionTaskAutomation;
 
-public class NotionButtonClicker : INotionButtonClicker
+public class NotionButtonClicker(
+    IHttpClientFactory httpClientFactory,
+    NotionDbContext notionDbContext,
+    IHttpContextAccessor httpContextAccessor)
+    : INotionButtonClicker
 {
-    private readonly IHttpClientFactory m_httpClientFactory;
-    private readonly IHttpContextAccessor m_httpContextAccessor;
-    private readonly NotionDbContext m_notionDbContext;
-
-    public NotionButtonClicker(IHttpClientFactory httpClientFactory,
-        NotionDbContext notionDbContext,
-        IHttpContextAccessor httpContextAccessor)
+    private readonly JsonSerializerOptions m_jsonOptions = new()
     {
-        m_httpContextAccessor = httpContextAccessor;
-        m_httpClientFactory = httpClientFactory;
-        m_notionDbContext = notionDbContext;
-    }
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
 
     public async Task<List<Guid>> GetSharedDatabases()
     {
@@ -57,7 +53,7 @@ public class NotionButtonClicker : INotionButtonClicker
     public async Task<List<TaskObject>> GetTasks(Guid notionDatabaseId)
     {
         Guid? continuationToken = null;
-        List<TaskObject> tasks = new();
+        List<TaskObject> tasks = [];
         var notionPageRules = GetNotionDatabaseRules(notionDatabaseId);
         var filter = ConstructFilter(notionPageRules);
 
@@ -72,10 +68,7 @@ public class NotionButtonClicker : INotionButtonClicker
                         Filter = filter,
                         StartCursor = continuationToken
                     },
-                    new JsonSerializerOptions
-                    {
-                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                    })
+                    m_jsonOptions)
             );
             continuationToken = response.NextCursor;
             tasks = tasks.Concat(response.Results).ToList();
@@ -110,29 +103,18 @@ public class NotionButtonClicker : INotionButtonClicker
             await GetResponseAsync<StatesObject>(
                 $"https://api.notion.com/v1/pages/{task.Id}",
                 HttpMethod.Patch,
-                JsonSerializer.Serialize(
-                    filter,
-                    new JsonSerializerOptions
-                    {
-                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                    })
+                JsonSerializer.Serialize(filter, m_jsonOptions)
             );
         }
     }
 
-    public List<NotionDatabaseRule> GetNotionDatabaseRules(Guid notionDatabaseId)
-    {
-        return m_notionDbContext.NotionDatabaseRules.Where(p => p.DatabaseId == notionDatabaseId).ToList();
-    }
+    public List<NotionDatabaseRule> GetNotionDatabaseRules(Guid notionDatabaseId) => notionDbContext.NotionDatabaseRules.Where(p => p.DatabaseId == notionDatabaseId).ToList();
 
-    private string GetBearerToken()
-    {
-        return m_httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault()?.Split(" ").Last();
-    }
+    private string GetBearerToken() => httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault()?.Split(" ").Last();
 
     private async Task<T> GetResponseAsync<T>(string requestUri, HttpMethod httpMethod, string body = null)
     {
-        var httpClient = m_httpClientFactory.CreateClient();
+        var httpClient = httpClientFactory.CreateClient();
         var httpRequestMessage = new HttpRequestMessage
         {
             Method = httpMethod,
@@ -169,10 +151,10 @@ public class NotionButtonClicker : INotionButtonClicker
 
                 return new Or
                 {
-                    And = new List<And>
-                    {
-                        new() { Property = "Status", Select = new FilterSelect { Equals = p.StartingState } },
-                        new()
+                    And =
+                    [
+                        new And { Property = "Status", Select = new FilterSelect { Equals = p.StartingState } },
+                        new And
                         {
                             Property = "Date", Date = new FilterDateObject
                             {
@@ -180,7 +162,7 @@ public class NotionButtonClicker : INotionButtonClicker
                                 Before = p.OnDay != "OnOrBefore" ? date : null
                             }
                         }
-                    }
+                    ]
                 };
             }).ToList()
         };

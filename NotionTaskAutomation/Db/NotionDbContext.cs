@@ -13,7 +13,7 @@ public class NotionDbContext : DbContext
 
     public NotionDbContext()
     {
-        var folder = Environment.SpecialFolder.LocalApplicationData;
+        const Environment.SpecialFolder folder = Environment.SpecialFolder.LocalApplicationData;
         var path = Environment.GetFolderPath(folder);
         DbPath = Path.Join(path, "notionrules.db");
     }
