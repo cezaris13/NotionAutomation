@@ -17,6 +17,11 @@ public class NotionDbContext : DbContext
         var path = Environment.GetFolderPath(folder);
         DbPath = Path.Join(path, "notionrules.db");
     }
+    
+    public NotionDbContext(DbContextOptions<NotionDbContext> options)
+        : base(options)
+    {
+    }
 
     // The following configures EF to create a Sqlite database file in the
     // special "local" folder for your platform.
