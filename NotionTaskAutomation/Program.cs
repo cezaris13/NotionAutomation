@@ -1,6 +1,8 @@
-﻿using System;
+using System;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
@@ -42,7 +44,13 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<INotionButtonClicker, NotionButtonClicker>();
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-builder.Services.AddDbContext<NotionDbContext>();
+builder.Services.AddDbContext<NotionDbContext>(options =>
+{
+    const Environment.SpecialFolder folder = Environment.SpecialFolder.LocalApplicationData;
+    var path = Environment.GetFolderPath(folder);
+    var dbPath = Path.Join(path, "notionrules.db");
+    options.UseSqlite($"Data Source={dbPath}");
+});
 
 var host = builder.Build();
 host.UseSwagger();

@@ -11,7 +11,7 @@ namespace NotionAutomationTests;
 [TestClass]
 public class NotionControllerTests
 {
-    private ServiceProvider _serviceProvider;
+    private ServiceProvider m_serviceProvider;
 
     [TestInitialize]
     public void Setup()
@@ -21,7 +21,7 @@ public class NotionControllerTests
         services.AddDbContext<NotionDbContext>(options =>
             options.UseInMemoryDatabase("TestDb"));
 
-        _serviceProvider = services.BuildServiceProvider();
+        m_serviceProvider = services.BuildServiceProvider();
     }
     
     [TestMethod]
@@ -114,8 +114,6 @@ public class NotionControllerTests
     public async Task GetNotionDatabaseRules_NoRulesFound_ReturnsEmptyList()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
-        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         var notionRules = new List<NotionDatabaseRule> { 
             new()
             {
@@ -127,7 +125,6 @@ public class NotionControllerTests
                 DayOffset = 2
             }
         };
-        await mockDbContext.SaveChangesAsync();
         
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
@@ -144,7 +141,7 @@ public class NotionControllerTests
                     .Where(q => q.DatabaseId == databaseId)
                     .ToList());
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionButtonClicker.Object, null);
         // Act
         var result = await sut.GetNotionDatabaseRules(databaseId);
 
@@ -179,7 +176,7 @@ public class NotionControllerTests
     public async Task GetNotionDatabaseRule_ReturnsRule()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         
         var ruleId = Guid.NewGuid();
@@ -231,7 +228,7 @@ public class NotionControllerTests
     public async Task GetNotionDatabaseRule_NotionRuleIsNotForUserDatabase_ReturnsNotFound()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         
         var ruleId = Guid.NewGuid();
@@ -272,7 +269,7 @@ public class NotionControllerTests
     public async Task GetNotionDatabaseRule_NoRuleFound_ReturnsNotFound()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         
         var ruleId = Guid.NewGuid();
@@ -313,7 +310,7 @@ public class NotionControllerTests
     public async Task ModifyNotionDatabaseRule_RuleIsModified()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         
         var ruleId = Guid.NewGuid();
@@ -427,7 +424,7 @@ public class NotionControllerTests
     public async Task ModifyNotionDatabaseRule_RuleIsNotFound_NotFoundResult()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         
         var ruleId = Guid.NewGuid();
@@ -480,7 +477,7 @@ public class NotionControllerTests
     public async Task AddNotionDatabaseRule_RuleIsAdded()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         
         var databaseId = Guid.NewGuid();
@@ -580,7 +577,7 @@ public class NotionControllerTests
     public async Task RemoveNotionDatabaseRule_RuleIsRemoved()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         
         var ruleId = Guid.NewGuid();
@@ -625,7 +622,7 @@ public class NotionControllerTests
     public async Task RemoveNotionDatabaseRule_NoRuleFound_NotFoundResult()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         
         var ruleId = Guid.NewGuid();
@@ -655,7 +652,7 @@ public class NotionControllerTests
     public async Task RemoveNotionDatabaseRule_NotInSharedDatabaseList_NotFoundResult()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         
         var ruleId = Guid.NewGuid();
