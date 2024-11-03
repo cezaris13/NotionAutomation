@@ -10,6 +10,7 @@ using Moq.Protected;
 using NotionTaskAutomation;
 using NotionTaskAutomation.Db;
 using NotionTaskAutomation.Objects;
+using Range = System.Range;
 
 namespace NotionAutomationTests;
 
@@ -324,10 +325,18 @@ public class NotionApiServiceTests
         // Assign
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
+        var ruleId = Guid.NewGuid();
+        var databaseId = Guid.NewGuid();
+        var notionRules = CreateNotionDatabaseRules(2, ruleId, databaseId);
+
+        var queryObjects = CreateQueryObjects(2);
+
+        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
+        await mockDbContext.SaveChangesAsync();
 
         m_mockHttpMessageHandler
             .Protected()
-            .Setup<Task<HttpResponseMessage>>(
+            .SetupSequence<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
@@ -335,7 +344,12 @@ public class NotionApiServiceTests
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonSerializer.Serialize(queryObjects[0]), Encoding.UTF8, "application/json")
+            })
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(queryObjects[1]), Encoding.UTF8, "application/json")
             });
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
@@ -347,8 +361,24 @@ public class NotionApiServiceTests
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
             m_mockHttpContextAccessor.Object);
         // Act
-        var result = await sut.GetTasks(Guid.NewGuid());
+        var result = await sut.GetTasks(databaseId);
+        
         // Assert
+        Assert.AreEqual(4, result.Count);
+
+        m_mockHttpMessageHandler.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(2),
+            ItExpr.IsAny<HttpRequestMessage>(),
+            ItExpr.IsAny<CancellationToken>()
+        );
+        
+        var tasks = queryObjects
+            .Select(p => p.Results)
+            .SelectMany(p => p)
+            .ToList();
+
+        CollectionAssert.AreEquivalent(tasks, result);
     }
 
     private StatesObject CreateStatesObject(List<string> states)
@@ -368,5 +398,46 @@ public class NotionApiServiceTests
                 }
             }
         };
+    }
+    
+    private List<NotionDatabaseRule> CreateNotionDatabaseRules(int size, Guid ruleId = new(), Guid databaseId = new()) {
+        List<NotionDatabaseRule> rules = [];
+        
+        for (var i = 0; i < size; i++)
+        {
+            var tempRuleId = i == 0 ? ruleId: Guid.NewGuid();
+            var tempDatabaseId = i == 0 ? databaseId: Guid.NewGuid();
+            rules.Add(new NotionDatabaseRule
+            {
+                RuleId = tempRuleId,
+                DatabaseId = tempDatabaseId,
+                StartingState = "InProgress",
+                EndingState = "Completed",
+                OnDay = "Wednesday",
+                DayOffset = 5
+            });
+        }
+        
+        return rules;
+    }
+
+    private List<QueryObject> CreateQueryObjects(int size)
+    {
+        List<QueryObject> queryObjects = []; 
+        
+        for (var i = 0; i < size; i++)
+        {
+            Guid? nextCursor = null;
+            if (i < size - 1)
+                nextCursor = Guid.NewGuid();
+
+            queryObjects.Add(new QueryObject
+                {
+                    Results = Enumerable.Range(0, 2).Select(p => new TaskObject { Id = Guid.NewGuid() }).ToList(),
+                    NextCursor = nextCursor
+                }
+            );
+        }
+        return queryObjects;
     }
 }
