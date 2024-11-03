@@ -45,7 +45,10 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
         var notionDatabaseRule =
             await notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleId);
         
-        if (notionDatabaseRule == null || !notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
+        if (notionDatabaseRule == null)
+            return NotFound("Notion page rule not found");
+ 
+        if(!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
             return NotFound("Notion database not found");
 
         return Ok(notionDatabaseRule);
@@ -124,9 +127,12 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     public async Task<ActionResult> DeleteNotionDatabaseRule(Guid notionDatabaseRuleId)
     {
         var notionDatabaseRule =
-            await notionDbContext.NotionDatabaseRules.FirstAsync(p => p.RuleId == notionDatabaseRuleId);
+            await notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleId);
         var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
 
+        if (notionDatabaseRule == null)
+            return NotFound("Notion rule for database not found");
+        
         if (!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
             return NotFound("Notion database not found");
 
@@ -145,7 +151,7 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
         if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        return await notionButtonClicker.GetStates(notionDatabaseId);
+        return Ok(await notionButtonClicker.GetStates(notionDatabaseId));
     }
 
     [HttpGet]
@@ -158,7 +164,7 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
         if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        return await notionButtonClicker.GetTasks(notionDatabaseId);
+        return Ok(await notionButtonClicker.GetTasks(notionDatabaseId));
     }
 
     [HttpGet]
