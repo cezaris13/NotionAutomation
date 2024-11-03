@@ -19,7 +19,7 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     [Route("getSharedDatabases")]
     public async Task<ActionResult<List<Guid>>> GetSharedDatabases()
     {
-        return await notionButtonClicker.GetSharedDatabases();
+        return Ok(await notionButtonClicker.GetSharedDatabases());
     }
 
     [HttpGet]
@@ -32,7 +32,7 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
         if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        return notionButtonClicker.GetNotionDatabaseRules(notionDatabaseId);
+        return Ok(notionButtonClicker.GetNotionDatabaseRules(notionDatabaseId));
     }
 
     [HttpGet]
@@ -44,10 +44,11 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
 
         var notionDatabaseRule =
             await notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleId);
-        if (!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
+        
+        if (notionDatabaseRule == null || !notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
             return NotFound("Notion database not found");
 
-        return notionDatabaseRule;
+        return Ok(notionDatabaseRule);
     }
 
     [HttpPatch]
