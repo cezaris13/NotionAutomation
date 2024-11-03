@@ -10,15 +10,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using NotionTaskAutomation.Db;
 using NotionTaskAutomation.Objects;
+using LanguageExt;
+using Microsoft.AspNetCore.WebUtilities;
 using static System.String;
 
 namespace NotionTaskAutomation;
 
-public class NotionButtonClicker(
+public class NotionApiService(
     IHttpClientFactory httpClientFactory,
     NotionDbContext notionDbContext,
     IHttpContextAccessor httpContextAccessor)
-    : INotionButtonClicker
+    : INotionApiService
 {
     private readonly JsonSerializerOptions m_jsonOptions = new()
     {
@@ -126,12 +128,17 @@ public class NotionButtonClicker(
         var bearerToken = GetBearerToken();
         if(IsNullOrEmpty(bearerToken))
             throw new UnauthorizedAccessException("Bearer token is required");
-        
+
         httpRequestMessage.Headers.Authorization =
             new AuthenticationHeaderValue("Bearer", bearerToken);
         httpRequestMessage.Headers.Add("Notion-Version", "2022-06-28");
         var response = await httpClient.SendAsync(httpRequestMessage);
-        response.EnsureSuccessStatusCode(); // fix this
+        if (!response.IsSuccessStatusCode)
+        {
+            var statusCode = response.StatusCode;
+            throw new BadHttpRequestException($"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).", (int)response.StatusCode);
+        }
+
         var responseAsObject =
             await JsonSerializer.DeserializeAsync<T>(
                 await response.Content.ReadAsStreamAsync());

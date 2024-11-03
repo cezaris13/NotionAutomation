@@ -5,7 +5,7 @@ using NotionTaskAutomation.Objects;
 
 namespace NotionTaskAutomation;
 
-public interface INotionButtonClicker
+public interface INotionApiService
 {
     Task<List<TaskObject>> GetTasks(Guid notionDatabaseId);
     Task<List<string>> GetStates(Guid notionDatabaseId);

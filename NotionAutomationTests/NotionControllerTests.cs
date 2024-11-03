@@ -30,12 +30,12 @@ public class NotionControllerTests
         // Arrange
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
         // Act
         var result = await sut.GetSharedDatabases();
 
@@ -85,19 +85,19 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetNotionDatabaseRules(databaseId))
             .Returns(
                 notionRules
                     .Where(q => q.DatabaseId == databaseId)
                     .ToList());
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.GetNotionDatabaseRules(databaseId);
@@ -130,19 +130,19 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetNotionDatabaseRules(databaseId))
             .Returns(
                 notionRules
                     .Where(q => q.DatabaseId == databaseId)
                     .ToList());
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
         // Act
         var result = await sut.GetNotionDatabaseRules(databaseId);
 
@@ -159,10 +159,10 @@ public class NotionControllerTests
         // Arrange
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker.Setup(n => n.GetSharedDatabases()).ReturnsAsync(sharedDatabases);
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService.Setup(n => n.GetSharedDatabases()).ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.GetNotionDatabaseRules(Guid.NewGuid());
@@ -209,12 +209,12 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
         // Act
         var result = await sut.GetNotionDatabaseRule(ruleId);
@@ -251,12 +251,12 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
         // Act
         var result = await sut.GetNotionDatabaseRule(ruleId);
@@ -292,12 +292,12 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
         // Act
         var result = await sut.GetNotionDatabaseRule(ruleId);
@@ -334,16 +334,16 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
             .ReturnsAsync(["InProgress", "Completed"]);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
         var modifiedNotionDatabaseRule = new NotionDatabaseRule
         {
@@ -371,12 +371,12 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.ModifyNotionDatabaseRule(databaseId, null);
@@ -395,16 +395,16 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
             .ReturnsAsync(["InProgress", "Completed"]);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         var modifiedNotionDatabaseRule = new NotionDatabaseRule
         {
@@ -448,16 +448,16 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
             .ReturnsAsync(["InProgress", "Completed"]);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
         var modifiedNotionDatabaseRule = new NotionDatabaseRule
         {
@@ -488,16 +488,16 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
             .ReturnsAsync(["InProgress", "Completed"]);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
         var notionDatabaseRule = new NotionDatabaseRuleObject
         {
@@ -526,12 +526,12 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.AddNotionDatabaseRule(databaseId, null);
@@ -549,16 +549,16 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
             .ReturnsAsync(["InProgress", "Completed"]);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         var notionDatabaseRule = new NotionDatabaseRuleObject
         {
@@ -600,12 +600,12 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
 
         var notionRuleSize = mockDbContext.NotionDatabaseRules.Count();
@@ -634,12 +634,12 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
         // Act
         var result = await sut.DeleteNotionDatabaseRule(ruleId);
@@ -675,12 +675,12 @@ public class NotionControllerTests
 
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, mockDbContext);
+        var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
         // Act
         var result = await sut.DeleteNotionDatabaseRule(ruleId);
@@ -697,12 +697,12 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.GetStates(databaseId);
@@ -721,16 +721,16 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
             .ReturnsAsync(states);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.GetStates(databaseId);
@@ -751,16 +751,16 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
             .ReturnsAsync(states);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.GetStates(databaseId);
@@ -780,12 +780,12 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.GetTasks(databaseId);
@@ -804,16 +804,16 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetTasks(It.IsAny<Guid>()))
             .ReturnsAsync(states);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.GetTasks(databaseId);
@@ -850,16 +850,16 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.GetTasks(It.IsAny<Guid>()))
             .ReturnsAsync(states);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.GetTasks(databaseId);
@@ -879,12 +879,12 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.UpdateTasksForDatabase(databaseId);
@@ -901,16 +901,16 @@ public class NotionControllerTests
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.UpdateTasks(It.IsAny<Guid>()))
             .Returns(Task.CompletedTask);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.UpdateTasksForDatabase(databaseId);
@@ -925,16 +925,16 @@ public class NotionControllerTests
         // Arrange
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
 
-        var mockNotionButtonClicker = new Mock<INotionButtonClicker>();
-        mockNotionButtonClicker
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
             .ReturnsAsync(sharedDatabases);
 
-        mockNotionButtonClicker
+        mockNotionApiService
             .Setup(p => p.UpdateTasks(It.IsAny<Guid>()))
             .Returns(Task.CompletedTask);
 
-        var sut = new NotionController(mockNotionButtonClicker.Object, null);
+        var sut = new NotionController(mockNotionApiService.Object, null);
 
         // Act
         var result = await sut.UpdateTasksForDatabases();
@@ -942,7 +942,7 @@ public class NotionControllerTests
         // Assert
         Assert.IsInstanceOfType(result, typeof(OkResult));
 
-        mockNotionButtonClicker.Verify(n => n.UpdateTasks(It.IsAny<Guid>()), Times.Exactly(3));
-        mockNotionButtonClicker.Verify(n => n.GetSharedDatabases(), Times.Once);
+        mockNotionApiService.Verify(n => n.UpdateTasks(It.IsAny<Guid>()), Times.Exactly(3));
+        mockNotionApiService.Verify(n => n.GetSharedDatabases(), Times.Once);
     }
 }

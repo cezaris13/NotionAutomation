@@ -42,7 +42,7 @@ builder.Services.AddMvcCore();
 builder.Services.AddMvc();
 builder.Services.AddHttpClient();
 
-builder.Services.AddSingleton<INotionButtonClicker, NotionButtonClicker>();
+builder.Services.AddSingleton<INotionApiService, NotionApiService>();
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddDbContext<NotionDbContext>(options =>
 {

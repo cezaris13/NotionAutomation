@@ -11,7 +11,7 @@ namespace NotionTaskAutomation;
 
 [ApiController]
 [Route("api")]
-public class NotionController(INotionButtonClicker notionButtonClicker, NotionDbContext notionDbContext)
+public class NotionController(INotionApiService notionApiService, NotionDbContext notionDbContext)
     : Controller
 {
     [HttpGet]
@@ -19,7 +19,7 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     [Route("getSharedDatabases")]
     public async Task<ActionResult<List<Guid>>> GetSharedDatabases()
     {
-        return Ok(await notionButtonClicker.GetSharedDatabases());
+        return Ok(await notionApiService.GetSharedDatabases());
     }
 
     [HttpGet]
@@ -27,12 +27,12 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     [Route("getDatabaseRules")]
     public async Task<ActionResult<List<NotionDatabaseRule>>> GetNotionDatabaseRules(Guid notionDatabaseId)
     {
-        var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        return Ok(notionButtonClicker.GetNotionDatabaseRules(notionDatabaseId));
+        return Ok(notionApiService.GetNotionDatabaseRules(notionDatabaseId));
     }
 
     [HttpGet]
@@ -40,7 +40,7 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     [Route("getDatabaseRule")]
     public async Task<ActionResult<NotionDatabaseRule>> GetNotionDatabaseRule(Guid notionDatabaseRuleId)
     {
-        var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         var notionDatabaseRule =
             await notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleId);
@@ -60,12 +60,12 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     public async Task<ActionResult> ModifyNotionDatabaseRule(Guid notionDatabaseId,
         NotionDatabaseRule notionDatabaseRuleObject)
     {
-        var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        var states = await notionButtonClicker.GetStates(notionDatabaseId);
+        var states = await notionApiService.GetStates(notionDatabaseId);
 
         if (states.FindIndex(p => p == notionDatabaseRuleObject.StartingState) == -1 ||
             states.FindIndex(p => p == notionDatabaseRuleObject.EndingState) == -1)
@@ -95,12 +95,12 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     public async Task<ActionResult> AddNotionDatabaseRule(Guid notionDatabaseId,
         NotionDatabaseRuleObject notionDatabaseRuleObject)
     {
-        var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        var states = await notionButtonClicker.GetStates(notionDatabaseId);
+        var states = await notionApiService.GetStates(notionDatabaseId);
 
         if (states.FindIndex(p => p == notionDatabaseRuleObject.StartingState) == -1 ||
             states.FindIndex(p => p == notionDatabaseRuleObject.EndingState) == -1)
@@ -128,7 +128,7 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     {
         var notionDatabaseRule =
             await notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleId);
-        var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         if (notionDatabaseRule == null)
             return NotFound("Notion rule for database not found");
@@ -146,12 +146,12 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     [Route("getStates")]
     public async Task<ActionResult<List<string>>> GetStates(Guid notionDatabaseId)
     {
-        var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        return Ok(await notionButtonClicker.GetStates(notionDatabaseId));
+        return Ok(await notionApiService.GetStates(notionDatabaseId));
     }
 
     [HttpGet]
@@ -159,12 +159,12 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     [Route("getTasks")]
     public async Task<ActionResult<List<TaskObject>>> GetTasks(Guid notionDatabaseId)
     {
-        var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        return Ok(await notionButtonClicker.GetTasks(notionDatabaseId));
+        return Ok(await notionApiService.GetTasks(notionDatabaseId));
     }
 
     [HttpGet]
@@ -172,12 +172,12 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     [Route("updateNotionDatabase")]
     public async Task<ActionResult> UpdateTasksForDatabase(Guid notionDatabaseId)
     {
-        var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         if (!notionDatabaseIds.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        await notionButtonClicker.UpdateTasks(notionDatabaseId);
+        await notionApiService.UpdateTasks(notionDatabaseId);
 
         return Ok();
     }
@@ -187,10 +187,10 @@ public class NotionController(INotionButtonClicker notionButtonClicker, NotionDb
     [Route("updateNotionDatabases")]
     public async Task<ActionResult> UpdateTasksForDatabases()
     {
-        var notionDatabaseIds = await notionButtonClicker.GetSharedDatabases();
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         foreach (var notionDatabaseId in notionDatabaseIds)
-            await notionButtonClicker.UpdateTasks(notionDatabaseId);
+            await notionApiService.UpdateTasks(notionDatabaseId);
 
         return Ok();
     }

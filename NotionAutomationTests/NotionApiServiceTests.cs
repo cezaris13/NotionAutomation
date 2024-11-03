@@ -14,7 +14,7 @@ using NotionTaskAutomation.Objects;
 namespace NotionAutomationTests;
 
 [TestClass]
-public class NotionButtonClickerTests
+public class NotionApiServiceTests
 {
     private Mock<IHttpClientFactory> m_mockHttpClientFactory;
     private Mock<HttpContext> m_mockHttpContext;
@@ -93,7 +93,7 @@ public class NotionButtonClickerTests
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
 
-        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
         var result = await sut.GetSharedDatabases();
@@ -112,7 +112,7 @@ public class NotionButtonClickerTests
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
 
-        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
         var exception = await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(
@@ -147,10 +147,10 @@ public class NotionButtonClickerTests
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
 
-        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
-        var exception = await Assert.ThrowsExceptionAsync<HttpRequestException>(
+        var exception = await Assert.ThrowsExceptionAsync<BadHttpRequestException>(
             () => sut.GetSharedDatabases());
 
         // Assert
@@ -182,7 +182,7 @@ public class NotionButtonClickerTests
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
 
-        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
         var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -218,7 +218,7 @@ public class NotionButtonClickerTests
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
 
-        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
         var result = await sut.GetStates(Guid.NewGuid());
@@ -238,7 +238,7 @@ public class NotionButtonClickerTests
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
 
-        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
         var exception = await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(
@@ -273,10 +273,10 @@ public class NotionButtonClickerTests
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
 
-        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
-        var exception = await Assert.ThrowsExceptionAsync<HttpRequestException>(
+        var exception = await Assert.ThrowsExceptionAsync<BadHttpRequestException>(
             () => sut.GetStates(Guid.NewGuid()));
 
         // Assert
@@ -308,7 +308,7 @@ public class NotionButtonClickerTests
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
 
-        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
         var exception = await Assert.ThrowsExceptionAsync<Exception>(
@@ -344,7 +344,7 @@ public class NotionButtonClickerTests
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
 
-        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, mockDbContext,
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
             m_mockHttpContextAccessor.Object);
         // Act
         var result = await sut.GetTasks(Guid.NewGuid());
