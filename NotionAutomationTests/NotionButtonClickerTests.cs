@@ -1,6 +1,8 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -14,13 +16,13 @@ namespace NotionAutomationTests;
 [TestClass]
 public class NotionButtonClickerTests
 {
-    private ServiceProvider m_serviceProvider;
-    
-    private Mock<HttpMessageHandler> m_mockHttpMessageHandler;
     private Mock<IHttpClientFactory> m_mockHttpClientFactory;
-    private Mock<IHttpContextAccessor> m_mockHttpContextAccessor;
     private Mock<HttpContext> m_mockHttpContext;
+    private Mock<IHttpContextAccessor> m_mockHttpContextAccessor;
+
+    private Mock<HttpMessageHandler> m_mockHttpMessageHandler;
     private Mock<HttpRequest> m_mockHttpRequest;
+    private ServiceProvider m_serviceProvider;
 
     [TestInitialize]
     public void Setup()
@@ -31,9 +33,9 @@ public class NotionButtonClickerTests
             options.UseInMemoryDatabase("TestDb"));
 
         m_serviceProvider = services.BuildServiceProvider();
-        
+
         m_mockHttpMessageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-        
+
         var httpClient = new HttpClient(m_mockHttpMessageHandler.Object);
         httpClient.BaseAddress = new Uri("https://api.example.com/");
 
@@ -41,39 +43,37 @@ public class NotionButtonClickerTests
         m_mockHttpClientFactory
             .Setup(p => p.CreateClient(It.IsAny<string>()))
             .Returns(httpClient);
-        
-        
+
+
         m_mockHttpRequest = new Mock<HttpRequest>();
-        
+
         m_mockHttpContext = new Mock<HttpContext>();
         m_mockHttpContext
             .Setup(p => p.Request)
             .Returns(m_mockHttpRequest.Object);
-        
+
         m_mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         m_mockHttpContextAccessor
-            .Setup(p=> p.HttpContext)
+            .Setup(p => p.HttpContext)
             .Returns(m_mockHttpContext.Object);
     }
-    
+
     [TestMethod]
     public async Task GetSharedDatabases_ReturnsListOfGuids()
     {
         // Arrange
+        var taskObjects = new List<TaskObject>();
+        for (var i = 0; i < 2; i++)
+            taskObjects.Add(new TaskObject
+            {
+                Id = Guid.NewGuid()
+            });
+
         var queryObject = new QueryObject
         {
-            Results = [
-                new TaskObject
-                {
-                    Id = Guid.NewGuid()
-                },
-                new TaskObject
-                {
-                    Id = Guid.NewGuid()
-                }, 
-            ]
+            Results = taskObjects
         };
-        
+
         m_mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -84,22 +84,289 @@ public class NotionButtonClickerTests
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonSerializer.Serialize(queryObject), System.Text.Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonSerializer.Serialize(queryObject), Encoding.UTF8, "application/json")
             });
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
-        
+
         m_mockHttpRequest
             .Setup(request => request.Headers)
             .Returns(headerDictionary);
-        
+
         var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
-        
+
         // Act
         var result = await sut.GetSharedDatabases();
-        
+
         // Assert
         Assert.AreEqual(2, result.Count);
         CollectionAssert.AreEquivalent(queryObject.Results.Select(p => p.Id).ToList(), result);
+    }
+
+    [TestMethod]
+    public async Task GetSharedDatabases_NoBearerToken_ThrowsUnauthorizedException()
+    {
+        var headerDictionary = new HeaderDictionary();
+
+        m_mockHttpRequest
+            .Setup(request => request.Headers)
+            .Returns(headerDictionary);
+
+        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+
+        // Act
+        var exception = await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(
+            () => sut.GetSharedDatabases());
+
+        // Assert
+        Assert.AreEqual("Bearer token is required", exception.Message);
+    }
+
+    [TestMethod]
+    public async Task GetSharedDatabases_NotOkResult_ThrowsHttpRequestException()
+    {
+        // Arrange
+        var statusCode = HttpStatusCode.NotFound;
+
+        m_mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = statusCode,
+                Content = new StringContent("", Encoding.UTF8, "application/json")
+            });
+
+        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
+
+        m_mockHttpRequest
+            .Setup(request => request.Headers)
+            .Returns(headerDictionary);
+
+        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+
+        // Act
+        var exception = await Assert.ThrowsExceptionAsync<HttpRequestException>(
+            () => sut.GetSharedDatabases());
+
+        // Assert
+        Assert.AreEqual(
+            $"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).",
+            exception.Message);
+    }
+
+    [TestMethod]
+    public async Task GetSharedDatabases_FailsToDeserialize_ThrowsException()
+    {
+        // Arrange
+        m_mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+            });
+
+        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
+
+        m_mockHttpRequest
+            .Setup(request => request.Headers)
+            .Returns(headerDictionary);
+
+        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+
+        // Act
+        var exception = await Assert.ThrowsExceptionAsync<Exception>(
+            () => sut.GetSharedDatabases());
+
+        // Assert
+        Assert.AreEqual("failed to deserialize", exception.Message);
+    }
+
+    [TestMethod]
+    public async Task GetStates_ReturnsListOfStates()
+    {
+        // Arrange
+        List<string> states = ["states1", "states2"];
+        var statesObject = CreateStatesObject(states);
+
+        m_mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(statesObject), Encoding.UTF8, "application/json")
+            });
+
+        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
+
+        m_mockHttpRequest
+            .Setup(request => request.Headers)
+            .Returns(headerDictionary);
+
+        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+
+        // Act
+        var result = await sut.GetStates(Guid.NewGuid());
+
+        // Assert
+        Assert.AreEqual(2, result.Count);
+        CollectionAssert.AreEquivalent(states, result);
+    }
+
+    [TestMethod]
+    public async Task GetStates_NoBearerToken_ThrowsUnauthorizedException()
+    {
+        // Arrange
+        var headerDictionary = new HeaderDictionary();
+
+        m_mockHttpRequest
+            .Setup(request => request.Headers)
+            .Returns(headerDictionary);
+
+        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+
+        // Act
+        var exception = await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(
+            () => sut.GetStates(Guid.NewGuid()));
+
+        // Assert
+        Assert.AreEqual("Bearer token is required", exception.Message);
+    }
+
+    [TestMethod]
+    public async Task GetStates_NotOkResult_ThrowsHttpRequestException()
+    {
+        // Arrange
+        var statusCode = HttpStatusCode.NotFound;
+
+        m_mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = statusCode,
+                Content = new StringContent("", Encoding.UTF8, "application/json")
+            });
+
+        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
+
+        m_mockHttpRequest
+            .Setup(request => request.Headers)
+            .Returns(headerDictionary);
+
+        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+
+        // Act
+        var exception = await Assert.ThrowsExceptionAsync<HttpRequestException>(
+            () => sut.GetStates(Guid.NewGuid()));
+
+        // Assert
+        Assert.AreEqual(
+            $"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).",
+            exception.Message);
+    }
+
+    [TestMethod]
+    public async Task GetStates_FailsToDeserialize_ThrowsException()
+    {
+        // Arrange
+        m_mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+            });
+
+        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
+
+        m_mockHttpRequest
+            .Setup(request => request.Headers)
+            .Returns(headerDictionary);
+
+        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+
+        // Act
+        var exception = await Assert.ThrowsExceptionAsync<Exception>(
+            () => sut.GetStates(Guid.NewGuid()));
+
+        // Assert
+        Assert.AreEqual("failed to deserialize", exception.Message);
+    }
+
+    [TestMethod]
+    public async Task GetTasks_ReturnListOfTasks()
+    {
+        // Assign
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
+
+        m_mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+            });
+
+        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
+
+        m_mockHttpRequest
+            .Setup(request => request.Headers)
+            .Returns(headerDictionary);
+
+        var sut = new NotionButtonClicker(m_mockHttpClientFactory.Object, mockDbContext,
+            m_mockHttpContextAccessor.Object);
+        // Act
+        var result = await sut.GetTasks(Guid.NewGuid());
+        // Assert
+    }
+
+    private StatesObject CreateStatesObject(List<string> states)
+    {
+        var options = states.Select(p => new Options { Name = p }).ToList();
+
+        return new StatesObject
+        {
+            Properties = new Properties
+            {
+                Status = new StatusObject
+                {
+                    Select = new SelectObject
+                    {
+                        Options = options
+                    }
+                }
+            }
+        };
     }
 }
