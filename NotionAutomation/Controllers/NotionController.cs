@@ -169,7 +169,12 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
         if (!notionDatabaseIds.Value.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        return Ok(await notionApiService.GetStates(notionDatabaseId));
+        var states = await notionApiService.GetStates(notionDatabaseId);
+
+        return states.Match(
+            states => Ok(states),
+            errors => errors
+        );
     }
 
     [HttpGet]
