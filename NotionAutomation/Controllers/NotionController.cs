@@ -184,7 +184,12 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
         if (!notionDatabaseIds.Value.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        return Ok(await notionApiService.GetTasks(notionDatabaseId));
+        var taskResult = await notionApiService.GetTasks(notionDatabaseId);
+
+        return taskResult.Match(
+            tasks => Ok(notionDatabaseId),
+            error => error
+        );
     }
 
     [HttpGet]

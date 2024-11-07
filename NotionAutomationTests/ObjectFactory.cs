@@ -66,4 +66,31 @@ public static class ObjectFactory {
 
         return queryObjects;
     }
+
+    public static NotionDatabaseRuleObject CreateNotionDatabaseRuleObject() {
+        return new NotionDatabaseRuleObject {
+            StartingState = "Completed",
+            EndingState = "InProgress"
+        };
+    }
+
+    public static List<TaskObject> CreateTaskObject(int size) {
+        var taskObjects = new List<TaskObject>();
+
+        for (var i = 0; i < size; i++) {
+            taskObjects.Add(new TaskObject {
+                    Id = Guid.NewGuid(),
+                    Properties = new PropertyObject {
+                        Status = new Status {
+                            Select = new Select {
+                                Name = "Status"
+                            }
+                        }
+                    }
+                }
+            );
+        }
+
+        return taskObjects;
+    }
 }

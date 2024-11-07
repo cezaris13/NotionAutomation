@@ -34,6 +34,7 @@ public class NotionControllerTests {
             .ReturnsAsync(sharedDatabases);
 
         var sut = new NotionController(mockNotionApiService.Object, null);
+
         // Act
         var result = await sut.GetSharedDatabases();
 
@@ -58,6 +59,7 @@ public class NotionControllerTests {
             .ReturnsAsync(Result<List<Guid>, ActionResult>.Err(unauthorizedObject));
 
         var sut = new NotionController(mockNotionApiService.Object, null);
+
         // Act
         var result = await sut.GetSharedDatabases();
 
@@ -70,33 +72,7 @@ public class NotionControllerTests {
     public async Task GetNotionDatabaseRules_ReturnsListOfRules() {
         // Arrange
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule> {
-            new() {
-                RuleId = Guid.NewGuid(),
-                DatabaseId = databaseId,
-                StartingState = "Pending",
-                EndingState = "Approved",
-                OnDay = "Monday",
-                DayOffset = 2
-            },
-            new() {
-                RuleId = Guid.NewGuid(),
-                DatabaseId = databaseId,
-                StartingState = "InProgress",
-                EndingState = "Completed",
-                OnDay = "Wednesday",
-                DayOffset = 5
-            },
-            new() {
-                RuleId = Guid.NewGuid(),
-                DatabaseId = databaseId,
-                StartingState = "New",
-                EndingState = "Archived",
-                OnDay = "Friday",
-                DayOffset = -3
-            }
-        };
-
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(3, databaseId: databaseId);
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
         var mockNotionApiService = new Mock<INotionApiService>();
@@ -120,26 +96,16 @@ public class NotionControllerTests {
         Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
         var response = (result.Result as OkObjectResult)!.Value as List<NotionDatabaseRule>;
         Assert.IsNotNull(response);
-        Assert.AreEqual(notionRules.Count, response.Count);
-        CollectionAssert.AreEquivalent(notionRules, response);
+        Assert.AreEqual(1, response.Count);
+        CollectionAssert.AreEquivalent(notionRules.Where(p => p.DatabaseId == databaseId).ToList(), response);
     }
 
     [TestMethod]
     public async Task GetNotionDatabaseRules_NoRulesFound_ReturnsEmptyList() {
         // Arrange
-        var notionRules = new List<NotionDatabaseRule> {
-            new() {
-                RuleId = Guid.NewGuid(),
-                DatabaseId = Guid.NewGuid(),
-                StartingState = "Pending",
-                EndingState = "Approved",
-                OnDay = "Monday",
-                DayOffset = 2
-            }
-        };
-
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(1);
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -170,7 +136,9 @@ public class NotionControllerTests {
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
         var mockNotionApiService = new Mock<INotionApiService>();
-        mockNotionApiService.Setup(n => n.GetSharedDatabases()).ReturnsAsync(sharedDatabases);
+        mockNotionApiService
+            .Setup(n => n.GetSharedDatabases())
+            .ReturnsAsync(sharedDatabases);
 
         var sut = new NotionController(mockNotionApiService.Object, null);
 
@@ -186,34 +154,15 @@ public class NotionControllerTests {
     [TestMethod]
     public async Task GetNotionDatabaseRule_ReturnsRule() {
         // Arrange
-        using var scope = m_serviceProvider.CreateScope();
-        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule> {
-            new() {
-                RuleId = ruleId,
-                DatabaseId = databaseId,
-                StartingState = "Pending",
-                EndingState = "Approved",
-                OnDay = "Monday",
-                DayOffset = 2
-            },
-            new() {
-                RuleId = Guid.NewGuid(),
-                DatabaseId = Guid.NewGuid(),
-                StartingState = "InProgress",
-                EndingState = "Completed",
-                OnDay = "Wednesday",
-                DayOffset = 5
-            }
-        };
-
+        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
+        
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-
-        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -234,25 +183,15 @@ public class NotionControllerTests {
     [TestMethod]
     public async Task GetNotionDatabaseRule_NotionRuleIsNotForUserDatabase_ReturnsNotFound() {
         // Arrange
+      
+        var ruleId = Guid.NewGuid();
+        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, ruleId);
+        
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-
-        var ruleId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule> {
-            new() {
-                RuleId = ruleId,
-                DatabaseId = Guid.NewGuid(),
-                StartingState = "Pending",
-                EndingState = "Approved",
-                OnDay = "Monday",
-                DayOffset = 2
-            }
-        };
-
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-
-        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -272,25 +211,14 @@ public class NotionControllerTests {
     [TestMethod]
     public async Task GetNotionDatabaseRule_NoRuleFound_ReturnsNotFound() {
         // Arrange
+        var ruleId = Guid.NewGuid();
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(1);
+        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-
-        var ruleId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule> {
-            new() {
-                RuleId = Guid.NewGuid(),
-                DatabaseId = Guid.NewGuid(),
-                StartingState = "InProgress",
-                EndingState = "Completed",
-                OnDay = "Wednesday",
-                DayOffset = 5
-            }
-        };
-
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-
-        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -310,26 +238,16 @@ public class NotionControllerTests {
     [TestMethod]
     public async Task ModifyNotionDatabaseRule_RuleIsModified() {
         // Arrange
-        using var scope = m_serviceProvider.CreateScope();
-        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule> {
-            new() {
-                RuleId = ruleId,
-                DatabaseId = databaseId,
-                StartingState = "InProgress",
-                EndingState = "Completed",
-                OnDay = "Wednesday",
-                DayOffset = 5
-            }
-        };
-
+        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, ruleId, databaseId);
+        var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1, ruleId)[0];
+        
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-
-        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -341,12 +259,6 @@ public class NotionControllerTests {
             .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgress", "Completed"]));
 
         var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
-
-        var modifiedNotionDatabaseRule = new NotionDatabaseRule {
-            RuleId = ruleId,
-            StartingState = "Completed",
-            EndingState = "InProgress"
-        };
 
         // Act
         var result = await sut.ModifyNotionDatabaseRule(databaseId, modifiedNotionDatabaseRule);
@@ -386,8 +298,8 @@ public class NotionControllerTests {
         // Arrange
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
+        var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1, ruleId)[0];
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -400,12 +312,6 @@ public class NotionControllerTests {
 
         var sut = new NotionController(mockNotionApiService.Object, null);
 
-        var modifiedNotionDatabaseRule = new NotionDatabaseRule {
-            RuleId = ruleId,
-            StartingState = "RandomState",
-            EndingState = "RandomState"
-        };
-
         // Act
         var result = await sut.ModifyNotionDatabaseRule(databaseId, modifiedNotionDatabaseRule);
 
@@ -417,26 +323,16 @@ public class NotionControllerTests {
     [TestMethod]
     public async Task ModifyNotionDatabaseRule_RuleIsNotFound_NotFoundResult() {
         // Arrange
-        using var scope = m_serviceProvider.CreateScope();
-        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule> {
-            new() {
-                RuleId = Guid.NewGuid(),
-                DatabaseId = databaseId,
-                StartingState = "InProgress",
-                EndingState = "Completed",
-                OnDay = "Wednesday",
-                DayOffset = 5
-            }
-        };
+        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, databaseId: databaseId);
+        var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1, ruleId)[0];
 
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-
-        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -448,12 +344,6 @@ public class NotionControllerTests {
             .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgress", "Completed"]));
 
         var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
-
-        var modifiedNotionDatabaseRule = new NotionDatabaseRule {
-            RuleId = ruleId,
-            StartingState = "Completed",
-            EndingState = "InProgress"
-        };
 
         // Act
         var result = await sut.ModifyNotionDatabaseRule(databaseId, modifiedNotionDatabaseRule);
@@ -466,15 +356,15 @@ public class NotionControllerTests {
     [TestMethod]
     public async Task AddNotionDatabaseRule_RuleIsAdded() {
         // Arrange
+        var databaseId = Guid.NewGuid();
+        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(0);
+        var notionDatabaseRule = ObjectFactory.CreateNotionDatabaseRuleObject();
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-
-        var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-
-        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -486,11 +376,6 @@ public class NotionControllerTests {
             .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgress", "Completed"]));
 
         var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
-
-        var notionDatabaseRule = new NotionDatabaseRuleObject {
-            StartingState = "Completed",
-            EndingState = "InProgress"
-        };
 
         var notionRuleSize = mockDbContext.NotionDatabaseRules.Count();
         // Act
@@ -566,16 +451,7 @@ public class NotionControllerTests {
 
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule> {
-            new() {
-                RuleId = ruleId,
-                DatabaseId = databaseId,
-                StartingState = "InProgress",
-                EndingState = "Completed",
-                OnDay = "Wednesday",
-                DayOffset = 5
-            }
-        };
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, ruleId, databaseId);
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
 
@@ -603,16 +479,15 @@ public class NotionControllerTests {
     [TestMethod]
     public async Task RemoveNotionDatabaseRule_NoRuleFound_NotFoundResult() {
         // Arrange
-        using var scope = m_serviceProvider.CreateScope();
-        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
+        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
         var notionRules = new List<NotionDatabaseRule>();
+        
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-
-        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -632,25 +507,15 @@ public class NotionControllerTests {
     [TestMethod]
     public async Task RemoveNotionDatabaseRule_NotInSharedDatabaseList_NotFoundResult() {
         // Arrange
-        using var scope = m_serviceProvider.CreateScope();
-        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule> {
-            new() {
-                RuleId = ruleId,
-                DatabaseId = databaseId,
-                StartingState = "InProgress",
-                EndingState = "Completed",
-                OnDay = "Wednesday",
-                DayOffset = 5
-            }
-        };
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, ruleId, databaseId);
+        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-
-        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -721,7 +586,6 @@ public class NotionControllerTests {
     public async Task GetStates_ReturnsListOfStates() {
         // Arrange
         List<string> states = ["State1", "State2", "State3"];
-
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
@@ -772,7 +636,6 @@ public class NotionControllerTests {
     public async Task GetTasks_EmptyListOfStates_ReturnsEmptyList() {
         // Arrange
         List<TaskObject> states = [];
-
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
 
@@ -800,21 +663,9 @@ public class NotionControllerTests {
     [TestMethod]
     public async Task GetTasks_ReturnsListOfStates() {
         // Arrange
-        var states = new List<TaskObject> {
-            new() {
-                Id = Guid.NewGuid(),
-                Properties = new PropertyObject {
-                    Status = new Status {
-                        Select = new Select {
-                            Name = "Status"
-                        }
-                    }
-                }
-            }
-        };
-
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
+        var states = ObjectFactory.CreateTaskObject(1);
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
