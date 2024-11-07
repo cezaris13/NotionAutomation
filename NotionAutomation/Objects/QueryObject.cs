@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace NotionTaskAutomation.Objects;
+namespace NotionAutomation.Objects;
 
 public class QueryObject
 {

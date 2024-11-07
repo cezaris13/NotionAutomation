@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using NotionTaskAutomation.Objects;
+using NotionAutomation.Objects;
 
-namespace NotionTaskAutomation.Db;
+namespace NotionAutomation.Db;
 
 public class NotionDbContext(DbContextOptions<NotionDbContext> options) : DbContext(options)
 {

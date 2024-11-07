@@ -2,7 +2,7 @@
 /shelf/
 /workspace.xml
 # Rider ignored files
-/.idea.NotionTaskAutomation.iml
+/.idea.NotionAutomation.iml
 /modules.xml
 /contentModel.xml
 /projectSettingsUpdater.xml

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace NotionTaskAutomation.Objects;
+namespace NotionAutomation.Objects;
 
 public class SearchFilter
 {

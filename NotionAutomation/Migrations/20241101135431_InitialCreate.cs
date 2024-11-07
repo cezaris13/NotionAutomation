@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace NotionTaskAutomation.Migrations
+namespace NotionAutomation.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

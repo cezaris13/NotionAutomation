@@ -1,4 +1,4 @@
-namespace NotionTaskAutomation.Attributes;
+namespace NotionAutomation.Attributes;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

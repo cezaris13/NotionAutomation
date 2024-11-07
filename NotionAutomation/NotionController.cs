@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NotionTaskAutomation.Attributes;
-using NotionTaskAutomation.Db;
-using NotionTaskAutomation.Objects;
+using NotionAutomation.Attributes;
+using NotionAutomation.Db;
+using NotionAutomation.Objects;
 
-namespace NotionTaskAutomation;
+namespace NotionAutomation;
 
 [ApiController]
 [Route("api")]
@@ -44,10 +44,10 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
 
         var notionDatabaseRule =
             await notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleId);
-        
+
         if (notionDatabaseRule == null)
             return NotFound("Notion page rule not found");
- 
+
         if(!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
             return NotFound("Notion database not found");
 
@@ -132,7 +132,7 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
 
         if (notionDatabaseRule == null)
             return NotFound("Notion rule for database not found");
-        
+
         if (!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
             return NotFound("Notion database not found");
 

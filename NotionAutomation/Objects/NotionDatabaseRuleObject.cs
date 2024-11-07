@@ -1,4 +1,4 @@
-namespace NotionTaskAutomation.Objects;
+namespace NotionAutomation.Objects;
 
 public class NotionDatabaseRuleObject
 {

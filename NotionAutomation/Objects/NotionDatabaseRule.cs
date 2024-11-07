@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace NotionTaskAutomation.Objects;
+namespace NotionAutomation.Objects;
 
 public class NotionDatabaseRule
 {

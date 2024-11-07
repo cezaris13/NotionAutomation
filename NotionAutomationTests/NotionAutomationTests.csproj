@@ -24,7 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\NotionTaskAutomation\NotionTaskAutomation.csproj" />
+      <ProjectReference Include="..\NotionAutomation\NotionAutomation.csproj" />
     </ItemGroup>
 
 </Project>

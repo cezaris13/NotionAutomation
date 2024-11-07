@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
-using NotionTaskAutomation;
-using NotionTaskAutomation.Db;
-using NotionTaskAutomation.Objects;
+using NotionAutomation;
+using NotionAutomation.Db;
+using NotionAutomation.Objects;
 
 namespace NotionAutomationTests;
 

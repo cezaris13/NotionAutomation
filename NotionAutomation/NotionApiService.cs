@@ -8,13 +8,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using NotionTaskAutomation.Db;
-using NotionTaskAutomation.Objects;
+using NotionAutomation.Db;
+using NotionAutomation.Objects;
 using LanguageExt;
 using Microsoft.AspNetCore.WebUtilities;
 using static System.String;
 
-namespace NotionTaskAutomation;
+namespace NotionAutomation;
 
 public class NotionApiService(
     IHttpClientFactory httpClientFactory,

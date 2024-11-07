@@ -2,25 +2,22 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NotionTaskAutomation.Db;
+using NotionAutomation.Db;
 
 #nullable disable
 
-namespace NotionTaskAutomation.Migrations
+namespace NotionAutomation.Migrations
 {
     [DbContext(typeof(NotionDbContext))]
-    [Migration("20241101135431_InitialCreate")]
-    partial class InitialCreate
+    partial class NotionDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0-rc.2.24474.1");
 
-            modelBuilder.Entity("NotionTaskAutomation.Objects.NotionDatabaseRule", b =>
+            modelBuilder.Entity("NotionAutomation.Objects.NotionDatabaseRule", b =>
                 {
                     b.Property<Guid>("RuleId")
                         .ValueGeneratedOnAdd()
