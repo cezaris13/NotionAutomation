@@ -1,7 +1,6 @@
 namespace NotionAutomation.Objects;
 
-public class NotionDatabaseRuleObject
-{
+public class NotionDatabaseRuleObject {
     public string StartingState { get; set; }
     public string EndingState { get; set; }
     public string OnDay { get; set; }

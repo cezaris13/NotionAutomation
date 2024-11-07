@@ -14,8 +14,7 @@ using NotionAutomation.Objects;
 namespace NotionAutomationTests;
 
 [TestClass]
-public class NotionApiServiceTests
-{
+public class NotionApiServiceTests {
     private Mock<IHttpClientFactory> m_mockHttpClientFactory;
     private Mock<HttpContext> m_mockHttpContext;
     private Mock<IHttpContextAccessor> m_mockHttpContextAccessor;
@@ -25,8 +24,7 @@ public class NotionApiServiceTests
     private ServiceProvider m_serviceProvider;
 
     [TestInitialize]
-    public void Setup()
-    {
+    public void Setup() {
         var services = new ServiceCollection();
 
         services.AddDbContext<NotionDbContext>(options =>
@@ -59,18 +57,15 @@ public class NotionApiServiceTests
     }
 
     [TestMethod]
-    public async Task GetSharedDatabases_ReturnsListOfGuids()
-    {
+    public async Task GetSharedDatabases_ReturnsListOfGuids() {
         // Arrange
         var taskObjects = new List<TaskObject>();
         for (var i = 0; i < 2; i++)
-            taskObjects.Add(new TaskObject
-            {
+            taskObjects.Add(new TaskObject {
                 Id = Guid.NewGuid()
             });
 
-        var queryObject = new QueryObject
-        {
+        var queryObject = new QueryObject {
             Results = taskObjects
         };
 
@@ -81,8 +76,7 @@ public class NotionApiServiceTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent(JsonSerializer.Serialize(queryObject), Encoding.UTF8, "application/json")
             });
@@ -104,8 +98,7 @@ public class NotionApiServiceTests
     }
 
     [TestMethod]
-    public async Task GetSharedDatabases_NoBearerToken_ThrowsUnauthorizedException()
-    {
+    public async Task GetSharedDatabases_NoBearerToken_ThrowsUnauthorizedException() {
         var headerDictionary = new HeaderDictionary();
 
         m_mockHttpRequest
@@ -123,8 +116,7 @@ public class NotionApiServiceTests
     }
 
     [TestMethod]
-    public async Task GetSharedDatabases_NotOkResult_ThrowsHttpRequestException()
-    {
+    public async Task GetSharedDatabases_NotOkResult_ThrowsHttpRequestException() {
         // Arrange
         var statusCode = HttpStatusCode.NotFound;
 
@@ -135,8 +127,7 @@ public class NotionApiServiceTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = statusCode,
                 Content = new StringContent("", Encoding.UTF8, "application/json")
             });
@@ -160,8 +151,7 @@ public class NotionApiServiceTests
     }
 
     [TestMethod]
-    public async Task GetSharedDatabases_FailsToDeserialize_ThrowsException()
-    {
+    public async Task GetSharedDatabases_FailsToDeserialize_ThrowsException() {
         // Arrange
         m_mockHttpMessageHandler
             .Protected()
@@ -170,8 +160,7 @@ public class NotionApiServiceTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent("{}", Encoding.UTF8, "application/json")
             });
@@ -193,8 +182,7 @@ public class NotionApiServiceTests
     }
 
     [TestMethod]
-    public async Task GetStates_ReturnsListOfStates()
-    {
+    public async Task GetStates_ReturnsListOfStates() {
         // Arrange
         List<string> states = ["states1", "states2"];
         var statesObject = CreateStatesObject(states);
@@ -206,8 +194,7 @@ public class NotionApiServiceTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent(JsonSerializer.Serialize(statesObject), Encoding.UTF8, "application/json")
             });
@@ -229,8 +216,7 @@ public class NotionApiServiceTests
     }
 
     [TestMethod]
-    public async Task GetStates_NoBearerToken_ThrowsUnauthorizedException()
-    {
+    public async Task GetStates_NoBearerToken_ThrowsUnauthorizedException() {
         // Arrange
         var headerDictionary = new HeaderDictionary();
 
@@ -249,8 +235,7 @@ public class NotionApiServiceTests
     }
 
     [TestMethod]
-    public async Task GetStates_NotOkResult_ThrowsHttpRequestException()
-    {
+    public async Task GetStates_NotOkResult_ThrowsHttpRequestException() {
         // Arrange
         var statusCode = HttpStatusCode.NotFound;
 
@@ -261,8 +246,7 @@ public class NotionApiServiceTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = statusCode,
                 Content = new StringContent("", Encoding.UTF8, "application/json")
             });
@@ -286,8 +270,7 @@ public class NotionApiServiceTests
     }
 
     [TestMethod]
-    public async Task GetStates_FailsToDeserialize_ThrowsException()
-    {
+    public async Task GetStates_FailsToDeserialize_ThrowsException() {
         // Arrange
         m_mockHttpMessageHandler
             .Protected()
@@ -296,8 +279,7 @@ public class NotionApiServiceTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent("{}", Encoding.UTF8, "application/json")
             });
@@ -319,8 +301,7 @@ public class NotionApiServiceTests
     }
 
     [TestMethod]
-    public async Task GetTasks_ReturnListOfTasks()
-    {
+    public async Task GetTasks_ReturnListOfTasks() {
         // Assign
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
@@ -339,14 +320,12 @@ public class NotionApiServiceTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent(JsonSerializer.Serialize(queryObjects[0]), Encoding.UTF8,
                     "application/json")
             })
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent(JsonSerializer.Serialize(queryObjects[1]), Encoding.UTF8,
                     "application/json")
@@ -378,13 +357,12 @@ public class NotionApiServiceTests
             .SelectMany(p => p)
             .ToList();
 
-        CollectionAssert.AreEquivalent(tasks.Select(p=>p.Id).ToList(), result.Select(p=>p.Id).ToList());
+        CollectionAssert.AreEquivalent(tasks.Select(p => p.Id).ToList(), result.Select(p => p.Id).ToList());
     }
 
 
     [TestMethod]
-    public async Task UpdateTasks_UpdatesTasks()
-    {
+    public async Task UpdateTasks_UpdatesTasks() {
         // Assign
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
@@ -395,8 +373,7 @@ public class NotionApiServiceTests
         var queryObjects = CreateQueryObjects(2);
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-        var statesResponseMessage = new HttpResponseMessage
-        {
+        var statesResponseMessage = new HttpResponseMessage {
             StatusCode = HttpStatusCode.OK,
             Content = new StringContent(
                 JsonSerializer.Serialize(CreateStatesObject(["state"])), Encoding.UTF8,
@@ -409,14 +386,12 @@ public class NotionApiServiceTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent(JsonSerializer.Serialize(queryObjects[0]), Encoding.UTF8,
                     "application/json")
             })
-            .ReturnsAsync(new HttpResponseMessage
-            {
+            .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent(JsonSerializer.Serialize(queryObjects[1]), Encoding.UTF8,
                     "application/json")
@@ -446,18 +421,13 @@ public class NotionApiServiceTests
         );
     }
 
-    private StatesObject CreateStatesObject(List<string> states)
-    {
+    private StatesObject CreateStatesObject(List<string> states) {
         var options = states.Select(p => new Options { Name = p }).ToList();
 
-        return new StatesObject
-        {
-            Properties = new Properties
-            {
-                Status = new StatusObject
-                {
-                    Select = new SelectObject
-                    {
+        return new StatesObject {
+            Properties = new Properties {
+                Status = new StatusObject {
+                    Select = new SelectObject {
                         Options = options
                     }
                 }
@@ -465,16 +435,13 @@ public class NotionApiServiceTests
         };
     }
 
-    private List<NotionDatabaseRule> CreateNotionDatabaseRules(int size, Guid ruleId = new(), Guid databaseId = new())
-    {
+    private List<NotionDatabaseRule> CreateNotionDatabaseRules(int size, Guid ruleId = new(), Guid databaseId = new()) {
         List<NotionDatabaseRule> rules = [];
 
-        for (var i = 0; i < size; i++)
-        {
+        for (var i = 0; i < size; i++) {
             var tempRuleId = i == 0 ? ruleId : Guid.NewGuid();
             var tempDatabaseId = i == 0 ? databaseId : Guid.NewGuid();
-            rules.Add(new NotionDatabaseRule
-            {
+            rules.Add(new NotionDatabaseRule {
                 RuleId = tempRuleId,
                 DatabaseId = tempDatabaseId,
                 StartingState = "InProgress",
@@ -487,29 +454,22 @@ public class NotionApiServiceTests
         return rules;
     }
 
-    private List<QueryObject> CreateQueryObjects(int size)
-    {
+    private List<QueryObject> CreateQueryObjects(int size) {
         List<QueryObject> queryObjects = [];
 
-        for (var i = 0; i < size; i++)
-        {
+        for (var i = 0; i < size; i++) {
             Guid? nextCursor = null;
             if (i < size - 1)
                 nextCursor = Guid.NewGuid();
 
             queryObjects.Add(
-                new QueryObject
-                {
+                new QueryObject {
                     Results = Enumerable.Range(0, 2).Select(_ =>
-                            new TaskObject
-                            {
+                            new TaskObject {
                                 Id = Guid.NewGuid(),
-                                Properties = new PropertyObject
-                                {
-                                    Status = new Status
-                                    {
-                                        Select = new Select
-                                        {
+                                Properties = new PropertyObject {
+                                    Status = new Status {
+                                        Select = new Select {
                                             Name = "InProgress"
                                         }
                                     }

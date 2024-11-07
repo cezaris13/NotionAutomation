@@ -4,26 +4,18 @@ using System.Text.Json.Serialization;
 
 namespace NotionAutomation.Objects;
 
-public class QueryObject
-{
-    [JsonPropertyName("results")]
-    public List<TaskObject> Results { get; set; }
+public class QueryObject {
+    [JsonPropertyName("results")] public List<TaskObject> Results { get; set; }
 
-    [JsonPropertyName("next_cursor")]
-    public Guid? NextCursor { get; set; }
+    [JsonPropertyName("next_cursor")] public Guid? NextCursor { get; set; }
 }
 
-public class TaskObject
-{
-    [JsonPropertyName("id")]
-    public Guid Id { get; set; }
+public class TaskObject {
+    [JsonPropertyName("id")] public Guid Id { get; set; }
 
-    [JsonPropertyName("properties")]
-    public PropertyObject Properties { get; set; }
+    [JsonPropertyName("properties")] public PropertyObject Properties { get; set; }
 }
 
-public class UpdateTaskObject
-{
-    [JsonPropertyName("properties")]
-    public PropertyObject Properties { get; set; }
+public class UpdateTaskObject {
+    [JsonPropertyName("properties")] public PropertyObject Properties { get; set; }
 }

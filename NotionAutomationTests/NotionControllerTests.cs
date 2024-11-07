@@ -9,13 +9,11 @@ using NotionAutomation.Objects;
 namespace NotionAutomationTests;
 
 [TestClass]
-public class NotionControllerTests
-{
+public class NotionControllerTests {
     private ServiceProvider m_serviceProvider;
 
     [TestInitialize]
-    public void Setup()
-    {
+    public void Setup() {
         var services = new ServiceCollection();
 
         services.AddDbContext<NotionDbContext>(options =>
@@ -25,8 +23,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetSharedDatabases_ReturnsListOfGuids()
-    {
+    public async Task GetSharedDatabases_ReturnsListOfGuids() {
         // Arrange
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
@@ -48,14 +45,11 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetNotionDatabaseRules_ReturnsListOfRules()
-    {
+    public async Task GetNotionDatabaseRules_ReturnsListOfRules() {
         // Arrange
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule>
-        {
-            new()
-            {
+        var notionRules = new List<NotionDatabaseRule> {
+            new() {
                 RuleId = Guid.NewGuid(),
                 DatabaseId = databaseId,
                 StartingState = "Pending",
@@ -63,8 +57,7 @@ public class NotionControllerTests
                 OnDay = "Monday",
                 DayOffset = 2
             },
-            new()
-            {
+            new() {
                 RuleId = Guid.NewGuid(),
                 DatabaseId = databaseId,
                 StartingState = "InProgress",
@@ -72,8 +65,7 @@ public class NotionControllerTests
                 OnDay = "Wednesday",
                 DayOffset = 5
             },
-            new()
-            {
+            new() {
                 RuleId = Guid.NewGuid(),
                 DatabaseId = databaseId,
                 StartingState = "New",
@@ -111,13 +103,10 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetNotionDatabaseRules_NoRulesFound_ReturnsEmptyList()
-    {
+    public async Task GetNotionDatabaseRules_NoRulesFound_ReturnsEmptyList() {
         // Arrange
-        var notionRules = new List<NotionDatabaseRule>
-        {
-            new()
-            {
+        var notionRules = new List<NotionDatabaseRule> {
+            new() {
                 RuleId = Guid.NewGuid(),
                 DatabaseId = Guid.NewGuid(),
                 StartingState = "Pending",
@@ -154,8 +143,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetNotionDatabaseRules_DatabaseDoesNotExist_ReturnsNotFound()
-    {
+    public async Task GetNotionDatabaseRules_DatabaseDoesNotExist_ReturnsNotFound() {
         // Arrange
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
@@ -174,18 +162,15 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetNotionDatabaseRule_ReturnsRule()
-    {
+    public async Task GetNotionDatabaseRule_ReturnsRule() {
         // Arrange
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
 
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule>
-        {
-            new()
-            {
+        var notionRules = new List<NotionDatabaseRule> {
+            new() {
                 RuleId = ruleId,
                 DatabaseId = databaseId,
                 StartingState = "Pending",
@@ -193,8 +178,7 @@ public class NotionControllerTests
                 OnDay = "Monday",
                 DayOffset = 2
             },
-            new()
-            {
+            new() {
                 RuleId = Guid.NewGuid(),
                 DatabaseId = Guid.NewGuid(),
                 StartingState = "InProgress",
@@ -226,17 +210,14 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetNotionDatabaseRule_NotionRuleIsNotForUserDatabase_ReturnsNotFound()
-    {
+    public async Task GetNotionDatabaseRule_NotionRuleIsNotForUserDatabase_ReturnsNotFound() {
         // Arrange
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
 
         var ruleId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule>
-        {
-            new()
-            {
+        var notionRules = new List<NotionDatabaseRule> {
+            new() {
                 RuleId = ruleId,
                 DatabaseId = Guid.NewGuid(),
                 StartingState = "Pending",
@@ -267,17 +248,14 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetNotionDatabaseRule_NoRuleFound_ReturnsNotFound()
-    {
+    public async Task GetNotionDatabaseRule_NoRuleFound_ReturnsNotFound() {
         // Arrange
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
 
         var ruleId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule>
-        {
-            new()
-            {
+        var notionRules = new List<NotionDatabaseRule> {
+            new() {
                 RuleId = Guid.NewGuid(),
                 DatabaseId = Guid.NewGuid(),
                 StartingState = "InProgress",
@@ -308,18 +286,15 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task ModifyNotionDatabaseRule_RuleIsModified()
-    {
+    public async Task ModifyNotionDatabaseRule_RuleIsModified() {
         // Arrange
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
 
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule>
-        {
-            new()
-            {
+        var notionRules = new List<NotionDatabaseRule> {
+            new() {
                 RuleId = ruleId,
                 DatabaseId = databaseId,
                 StartingState = "InProgress",
@@ -345,8 +320,7 @@ public class NotionControllerTests
 
         var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
-        var modifiedNotionDatabaseRule = new NotionDatabaseRule
-        {
+        var modifiedNotionDatabaseRule = new NotionDatabaseRule {
             RuleId = ruleId,
             StartingState = "Completed",
             EndingState = "InProgress"
@@ -365,8 +339,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task ModifyNotionDatabaseRule_DatabaseIdIsNotIncluded_NotFound()
-    {
+    public async Task ModifyNotionDatabaseRule_DatabaseIdIsNotIncluded_NotFound() {
         // Arrange
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
@@ -387,8 +360,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task ModifyNotionDatabaseRule_StatesAreNotInStateList_BadRequest()
-    {
+    public async Task ModifyNotionDatabaseRule_StatesAreNotInStateList_BadRequest() {
         // Arrange
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
@@ -406,8 +378,7 @@ public class NotionControllerTests
 
         var sut = new NotionController(mockNotionApiService.Object, null);
 
-        var modifiedNotionDatabaseRule = new NotionDatabaseRule
-        {
+        var modifiedNotionDatabaseRule = new NotionDatabaseRule {
             RuleId = ruleId,
             StartingState = "RandomState",
             EndingState = "RandomState"
@@ -422,18 +393,15 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task ModifyNotionDatabaseRule_RuleIsNotFound_NotFoundResult()
-    {
+    public async Task ModifyNotionDatabaseRule_RuleIsNotFound_NotFoundResult() {
         // Arrange
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
 
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule>
-        {
-            new()
-            {
+        var notionRules = new List<NotionDatabaseRule> {
+            new() {
                 RuleId = Guid.NewGuid(),
                 DatabaseId = databaseId,
                 StartingState = "InProgress",
@@ -459,8 +427,7 @@ public class NotionControllerTests
 
         var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
-        var modifiedNotionDatabaseRule = new NotionDatabaseRule
-        {
+        var modifiedNotionDatabaseRule = new NotionDatabaseRule {
             RuleId = ruleId,
             StartingState = "Completed",
             EndingState = "InProgress"
@@ -475,8 +442,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task AddNotionDatabaseRule_RuleIsAdded()
-    {
+    public async Task AddNotionDatabaseRule_RuleIsAdded() {
         // Arrange
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
@@ -499,8 +465,7 @@ public class NotionControllerTests
 
         var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
-        var notionDatabaseRule = new NotionDatabaseRuleObject
-        {
+        var notionDatabaseRule = new NotionDatabaseRuleObject {
             StartingState = "Completed",
             EndingState = "InProgress"
         };
@@ -520,8 +485,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task AddNotionDatabaseRule_DatabaseIdIsNotIncluded_NotFound()
-    {
+    public async Task AddNotionDatabaseRule_DatabaseIdIsNotIncluded_NotFound() {
         // Arrange
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
@@ -542,8 +506,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task AddNotionDatabaseRule_StatesAreNotInStateList_BadRequest()
-    {
+    public async Task AddNotionDatabaseRule_StatesAreNotInStateList_BadRequest() {
         // Arrange
         var databaseId = Guid.NewGuid();
 
@@ -560,8 +523,7 @@ public class NotionControllerTests
 
         var sut = new NotionController(mockNotionApiService.Object, null);
 
-        var notionDatabaseRule = new NotionDatabaseRuleObject
-        {
+        var notionDatabaseRule = new NotionDatabaseRuleObject {
             StartingState = "RandomState",
             EndingState = "RandomState"
         };
@@ -575,18 +537,15 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task RemoveNotionDatabaseRule_RuleIsRemoved()
-    {
+    public async Task RemoveNotionDatabaseRule_RuleIsRemoved() {
         // Arrange
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
 
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule>
-        {
-            new()
-            {
+        var notionRules = new List<NotionDatabaseRule> {
+            new() {
                 RuleId = ruleId,
                 DatabaseId = databaseId,
                 StartingState = "InProgress",
@@ -620,8 +579,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task RemoveNotionDatabaseRule_NoRuleFound_NotFoundResult()
-    {
+    public async Task RemoveNotionDatabaseRule_NoRuleFound_NotFoundResult() {
         // Arrange
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
@@ -650,18 +608,15 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task RemoveNotionDatabaseRule_NotInSharedDatabaseList_NotFoundResult()
-    {
+    public async Task RemoveNotionDatabaseRule_NotInSharedDatabaseList_NotFoundResult() {
         // Arrange
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
 
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = new List<NotionDatabaseRule>
-        {
-            new()
-            {
+        var notionRules = new List<NotionDatabaseRule> {
+            new() {
                 RuleId = ruleId,
                 DatabaseId = databaseId,
                 StartingState = "InProgress",
@@ -691,8 +646,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetStates_DoesNotContainDatabaseId_NotFoundResult()
-    {
+    public async Task GetStates_DoesNotContainDatabaseId_NotFoundResult() {
         // Arrange
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
@@ -713,8 +667,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetStates_EmptyListOfStates_ReturnsEmptyList()
-    {
+    public async Task GetStates_EmptyListOfStates_ReturnsEmptyList() {
         // Arrange
         List<string> states = [];
 
@@ -743,8 +696,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetStates_ReturnsListOfStates()
-    {
+    public async Task GetStates_ReturnsListOfStates() {
         // Arrange
         List<string> states = ["State1", "State2", "State3"];
 
@@ -774,8 +726,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetTasks_DoesNotContainDatabaseId_NotFoundResult()
-    {
+    public async Task GetTasks_DoesNotContainDatabaseId_NotFoundResult() {
         // Arrange
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
@@ -796,8 +747,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetTasks_EmptyListOfStates_ReturnsEmptyList()
-    {
+    public async Task GetTasks_EmptyListOfStates_ReturnsEmptyList() {
         // Arrange
         List<TaskObject> states = [];
 
@@ -826,20 +776,14 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task GetTasks_ReturnsListOfStates()
-    {
+    public async Task GetTasks_ReturnsListOfStates() {
         // Arrange
-        var states = new List<TaskObject>
-        {
-            new()
-            {
+        var states = new List<TaskObject> {
+            new() {
                 Id = Guid.NewGuid(),
-                Properties = new PropertyObject
-                {
-                    Status = new Status
-                    {
-                        Select = new Select
-                        {
+                Properties = new PropertyObject {
+                    Status = new Status {
+                        Select = new Select {
                             Name = "Status"
                         }
                     }
@@ -873,8 +817,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task UpdateTasksForDatabase_DoesNotContainDatabaseId_NotFoundResult()
-    {
+    public async Task UpdateTasksForDatabase_DoesNotContainDatabaseId_NotFoundResult() {
         // Arrange
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
@@ -895,8 +838,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task UpdateTasksForDatabase_ReturnsOk()
-    {
+    public async Task UpdateTasksForDatabase_ReturnsOk() {
         // Arrange
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
@@ -920,8 +862,7 @@ public class NotionControllerTests
     }
 
     [TestMethod]
-    public async Task UpdateTasksForDatabases_ReturnsOk()
-    {
+    public async Task UpdateTasksForDatabases_ReturnsOk() {
         // Arrange
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
 

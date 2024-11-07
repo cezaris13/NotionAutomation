@@ -3,10 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NotionAutomation.Objects;
 
-public class NotionDatabaseRule
-{
-    [Key]
-    public Guid RuleId { get; set; }
+public class NotionDatabaseRule {
+    [Key] public Guid RuleId { get; set; }
+
     public Guid DatabaseId { get; set; }
     public string StartingState { get; set; }
     public string EndingState { get; set; }

@@ -5,8 +5,7 @@ using NotionAutomation.Objects;
 
 namespace NotionAutomation;
 
-public interface INotionApiService
-{
+public interface INotionApiService {
     Task<List<TaskObject>> GetTasks(Guid notionDatabaseId);
     Task<List<string>> GetStates(Guid notionDatabaseId);
     Task UpdateTasks(Guid notionDatabaseId);
