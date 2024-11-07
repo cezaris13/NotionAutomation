@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using NotionAutomation.Db;
 using NotionAutomation.Objects;
-using LanguageExt;
 using Microsoft.AspNetCore.WebUtilities;
 using static System.String;
 

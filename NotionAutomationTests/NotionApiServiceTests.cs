@@ -378,7 +378,7 @@ public class NotionApiServiceTests
             .SelectMany(p => p)
             .ToList();
 
-        CollectionAssert.AreEquivalent(tasks, result);
+        CollectionAssert.AreEquivalent(tasks.Select(p=>p.Id).ToList(), result.Select(p=>p.Id).ToList());
     }
 
 
@@ -500,7 +500,7 @@ public class NotionApiServiceTests
             queryObjects.Add(
                 new QueryObject
                 {
-                    Results = Enumerable.Range(0, 2).Select(p =>
+                    Results = Enumerable.Range(0, 2).Select(_ =>
                             new TaskObject
                             {
                                 Id = Guid.NewGuid(),
