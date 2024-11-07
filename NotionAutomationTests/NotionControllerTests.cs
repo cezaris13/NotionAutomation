@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NotionAutomation;
+using NotionAutomation.DataTypes;
 using NotionAutomation.Db;
 using NotionAutomation.Objects;
 
@@ -42,6 +43,27 @@ public class NotionControllerTests {
         Assert.IsNotNull(response);
         Assert.AreEqual(sharedDatabases.Count, response.Count);
         Assert.AreSame(sharedDatabases, response);
+    }
+
+    [TestMethod]
+    public async Task GetSharedDatabases_ApiServiceFails_ReturnsNotFound() {
+        // Arrange
+        var unauthorizedObject = new ObjectResult("unauthorized!") {
+            StatusCode = 401
+        };
+
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
+            .Setup(n => n.GetSharedDatabases())
+            .ReturnsAsync(Result<List<Guid>, ActionResult>.Err(unauthorizedObject));
+
+        var sut = new NotionController(mockNotionApiService.Object, null);
+        // Act
+        var result = await sut.GetSharedDatabases();
+
+        // Assert
+        Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
+        Assert.AreEqual(unauthorizedObject.Value, (result.Result as ObjectResult)!.Value);
     }
 
     [TestMethod]
@@ -316,7 +338,7 @@ public class NotionControllerTests {
 
         mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
-            .ReturnsAsync(["InProgress", "Completed"]);
+            .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgress", "Completed"]));
 
         var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
@@ -374,7 +396,7 @@ public class NotionControllerTests {
 
         mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
-            .ReturnsAsync(["InProgress", "Completed"]);
+            .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgress", "Completed"]));
 
         var sut = new NotionController(mockNotionApiService.Object, null);
 
@@ -423,7 +445,7 @@ public class NotionControllerTests {
 
         mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
-            .ReturnsAsync(["InProgress", "Completed"]);
+            .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgress", "Completed"]));
 
         var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
@@ -461,7 +483,7 @@ public class NotionControllerTests {
 
         mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
-            .ReturnsAsync(["InProgress", "Completed"]);
+            .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgress", "Completed"]));
 
         var sut = new NotionController(mockNotionApiService.Object, mockDbContext);
 
@@ -519,7 +541,7 @@ public class NotionControllerTests {
 
         mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
-            .ReturnsAsync(["InProgress", "Completed"]);
+            .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgress", "Completed"]));
 
         var sut = new NotionController(mockNotionApiService.Object, null);
 
@@ -850,7 +872,7 @@ public class NotionControllerTests {
 
         mockNotionApiService
             .Setup(p => p.UpdateTasks(It.IsAny<Guid>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Result<Unit, ActionResult>.Ok(Unit.Value));
 
         var sut = new NotionController(mockNotionApiService.Object, null);
 
@@ -873,7 +895,7 @@ public class NotionControllerTests {
 
         mockNotionApiService
             .Setup(p => p.UpdateTasks(It.IsAny<Guid>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Result<Unit, ActionResult>.Ok(Unit.Value));
 
         var sut = new NotionController(mockNotionApiService.Object, null);
 

@@ -93,8 +93,9 @@ public class NotionApiServiceTests {
         var result = await sut.GetSharedDatabases();
 
         // Assert
-        Assert.AreEqual(2, result.Count);
-        CollectionAssert.AreEquivalent(queryObject.Results.Select(p => p.Id).ToList(), result);
+        Assert.IsTrue(result.IsOk);
+        Assert.AreEqual(2, result.Value.Count);
+        CollectionAssert.AreEquivalent(queryObject.Results.Select(p => p.Id).ToList(), result.Value);
     }
 
     [TestMethod]
@@ -162,7 +163,7 @@ public class NotionApiServiceTests {
             )
             .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+                Content = new StringContent("'{ \"Id\": 1, \"Name\": \"Coke\" }'", Encoding.UTF8, "application/json")
             });
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
@@ -185,7 +186,7 @@ public class NotionApiServiceTests {
     public async Task GetStates_ReturnsListOfStates() {
         // Arrange
         List<string> states = ["states1", "states2"];
-        var statesObject = CreateStatesObject(states);
+        var statesObject = ObjectFactory.CreateStatesObject(states);
 
         m_mockHttpMessageHandler
             .Protected()
@@ -211,8 +212,9 @@ public class NotionApiServiceTests {
         var result = await sut.GetStates(Guid.NewGuid());
 
         // Assert
-        Assert.AreEqual(2, result.Count);
-        CollectionAssert.AreEquivalent(states, result);
+        Assert.IsTrue(result.IsOk);
+        Assert.AreEqual(2, result.Value.Count);
+        CollectionAssert.AreEquivalent(states, result.Value);
     }
 
     [TestMethod]
@@ -281,7 +283,7 @@ public class NotionApiServiceTests {
             )
             .ReturnsAsync(new HttpResponseMessage {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+                Content = new StringContent("'{ \"Id\": 1, \"Name\": \"Coke\" }'", Encoding.UTF8, "application/json")
             });
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
@@ -307,9 +309,9 @@ public class NotionApiServiceTests {
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = CreateNotionDatabaseRules(2, ruleId, databaseId);
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
 
-        var queryObjects = CreateQueryObjects(2);
+        var queryObjects = ObjectFactory.CreateQueryObjects(2);
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
 
@@ -343,7 +345,8 @@ public class NotionApiServiceTests {
         var result = await sut.GetTasks(databaseId);
 
         // Assert
-        Assert.AreEqual(4, result.Count);
+        Assert.IsTrue(result.IsOk);
+        Assert.AreEqual(4, result.Value.Count);
 
         m_mockHttpMessageHandler.Protected().Verify(
             "SendAsync",
@@ -357,7 +360,7 @@ public class NotionApiServiceTests {
             .SelectMany(p => p)
             .ToList();
 
-        CollectionAssert.AreEquivalent(tasks.Select(p => p.Id).ToList(), result.Select(p => p.Id).ToList());
+        CollectionAssert.AreEquivalent(tasks.Select(p => p.Id).ToList(), result.Value.Select(p => p.Id).ToList());
     }
 
 
@@ -368,15 +371,15 @@ public class NotionApiServiceTests {
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
-        var notionRules = CreateNotionDatabaseRules(2, ruleId, databaseId);
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
 
-        var queryObjects = CreateQueryObjects(2);
+        var queryObjects = ObjectFactory.CreateQueryObjects(2);
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
         var statesResponseMessage = new HttpResponseMessage {
             StatusCode = HttpStatusCode.OK,
             Content = new StringContent(
-                JsonSerializer.Serialize(CreateStatesObject(["state"])), Encoding.UTF8,
+                JsonSerializer.Serialize(ObjectFactory.CreateStatesObject(["state"])), Encoding.UTF8,
                 "application/json")
         };
         m_mockHttpMessageHandler
@@ -419,68 +422,5 @@ public class NotionApiServiceTests {
             ItExpr.IsAny<HttpRequestMessage>(),
             ItExpr.IsAny<CancellationToken>()
         );
-    }
-
-    private StatesObject CreateStatesObject(List<string> states) {
-        var options = states.Select(p => new Options { Name = p }).ToList();
-
-        return new StatesObject {
-            Properties = new Properties {
-                Status = new StatusObject {
-                    Select = new SelectObject {
-                        Options = options
-                    }
-                }
-            }
-        };
-    }
-
-    private List<NotionDatabaseRule> CreateNotionDatabaseRules(int size, Guid ruleId = new(), Guid databaseId = new()) {
-        List<NotionDatabaseRule> rules = [];
-
-        for (var i = 0; i < size; i++) {
-            var tempRuleId = i == 0 ? ruleId : Guid.NewGuid();
-            var tempDatabaseId = i == 0 ? databaseId : Guid.NewGuid();
-            rules.Add(new NotionDatabaseRule {
-                RuleId = tempRuleId,
-                DatabaseId = tempDatabaseId,
-                StartingState = "InProgress",
-                EndingState = "Completed",
-                OnDay = "Wednesday",
-                DayOffset = 5
-            });
-        }
-
-        return rules;
-    }
-
-    private List<QueryObject> CreateQueryObjects(int size) {
-        List<QueryObject> queryObjects = [];
-
-        for (var i = 0; i < size; i++) {
-            Guid? nextCursor = null;
-            if (i < size - 1)
-                nextCursor = Guid.NewGuid();
-
-            queryObjects.Add(
-                new QueryObject {
-                    Results = Enumerable.Range(0, 2).Select(_ =>
-                            new TaskObject {
-                                Id = Guid.NewGuid(),
-                                Properties = new PropertyObject {
-                                    Status = new Status {
-                                        Select = new Select {
-                                            Name = "InProgress"
-                                        }
-                                    }
-                                }
-                            })
-                        .ToList(),
-                    NextCursor = nextCursor
-                }
-            );
-        }
-
-        return queryObjects;
     }
 }

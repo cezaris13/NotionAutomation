@@ -17,7 +17,11 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
     [Authorization]
     [Route("getSharedDatabases")]
     public async Task<ActionResult<List<Guid>>> GetSharedDatabases() {
-        return Ok(await notionApiService.GetSharedDatabases());
+        var sharedDatabases = await notionApiService.GetSharedDatabases();
+
+        return sharedDatabases.Match<ActionResult<List<Guid>>>(
+            sharedDatabases => Ok(sharedDatabases),
+            err => err);
     }
 
     [HttpGet]
@@ -26,7 +30,10 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
     public async Task<ActionResult<List<NotionDatabaseRule>>> GetNotionDatabaseRules(Guid notionDatabaseId) {
         var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
-        if (!notionDatabaseIds.Contains(notionDatabaseId))
+        if (!notionDatabaseIds.IsOk)
+            return notionDatabaseIds.Error;
+
+        if (!notionDatabaseIds.Value.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
         return Ok(notionApiService.GetNotionDatabaseRules(notionDatabaseId));
@@ -38,13 +45,16 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
     public async Task<ActionResult<NotionDatabaseRule>> GetNotionDatabaseRule(Guid notionDatabaseRuleId) {
         var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
+        if (!notionDatabaseIds.IsOk)
+            return notionDatabaseIds.Error;
+
         var notionDatabaseRule =
             await notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleId);
 
         if (notionDatabaseRule == null)
             return NotFound("Notion page rule not found");
 
-        if (!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
+        if (!notionDatabaseIds.Value.Contains(notionDatabaseRule.DatabaseId))
             return NotFound("Notion database not found");
 
         return Ok(notionDatabaseRule);
@@ -57,13 +67,18 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
         NotionDatabaseRule notionDatabaseRuleObject) {
         var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
-        if (!notionDatabaseIds.Contains(notionDatabaseId))
+        if (!notionDatabaseIds.IsOk)
+            return notionDatabaseIds.Error;
+
+        if (!notionDatabaseIds.Value.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
         var states = await notionApiService.GetStates(notionDatabaseId);
+        if (!states.IsOk)
+            return states.Error;
 
-        if (states.FindIndex(p => p == notionDatabaseRuleObject.StartingState) == -1 ||
-            states.FindIndex(p => p == notionDatabaseRuleObject.EndingState) == -1)
+        if (states.Value.FindIndex(p => p == notionDatabaseRuleObject.StartingState) == -1 ||
+            states.Value.FindIndex(p => p == notionDatabaseRuleObject.EndingState) == -1)
             return BadRequest("Notion page start or end state is invalid");
 
         var notionDatabaseRule =
@@ -91,13 +106,19 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
         NotionDatabaseRuleObject notionDatabaseRuleObject) {
         var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
-        if (!notionDatabaseIds.Contains(notionDatabaseId))
+        if (!notionDatabaseIds.IsOk)
+            return notionDatabaseIds.Error;
+
+        if (!notionDatabaseIds.Value.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
         var states = await notionApiService.GetStates(notionDatabaseId);
 
-        if (states.FindIndex(p => p == notionDatabaseRuleObject.StartingState) == -1 ||
-            states.FindIndex(p => p == notionDatabaseRuleObject.EndingState) == -1)
+        if (!states.IsOk)
+            return states.Error;
+
+        if (states.Value.FindIndex(p => p == notionDatabaseRuleObject.StartingState) == -1 ||
+            states.Value.FindIndex(p => p == notionDatabaseRuleObject.EndingState) == -1)
             return BadRequest("Notion page start or end state is invalid");
 
         var notionDatabaseRule = new NotionDatabaseRule {
@@ -118,14 +139,17 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
     [Authorization]
     [Route("removeDatabaseRule")]
     public async Task<ActionResult> DeleteNotionDatabaseRule(Guid notionDatabaseRuleId) {
+        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
+        if (!notionDatabaseIds.IsOk)
+            return notionDatabaseIds.Error;
+
         var notionDatabaseRule =
             await notionDbContext.NotionDatabaseRules.FirstOrDefaultAsync(p => p.RuleId == notionDatabaseRuleId);
-        var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
         if (notionDatabaseRule == null)
             return NotFound("Notion rule for database not found");
 
-        if (!notionDatabaseIds.Contains(notionDatabaseRule.DatabaseId))
+        if (!notionDatabaseIds.Value.Contains(notionDatabaseRule.DatabaseId))
             return NotFound("Notion database not found");
 
         notionDbContext.NotionDatabaseRules.Remove(notionDatabaseRule);
@@ -139,7 +163,10 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
     public async Task<ActionResult<List<string>>> GetStates(Guid notionDatabaseId) {
         var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
-        if (!notionDatabaseIds.Contains(notionDatabaseId))
+        if (!notionDatabaseIds.IsOk)
+            return notionDatabaseIds.Error;
+
+        if (!notionDatabaseIds.Value.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
         return Ok(await notionApiService.GetStates(notionDatabaseId));
@@ -151,7 +178,10 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
     public async Task<ActionResult<List<TaskObject>>> GetTasks(Guid notionDatabaseId) {
         var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
-        if (!notionDatabaseIds.Contains(notionDatabaseId))
+        if (!notionDatabaseIds.IsOk)
+            return notionDatabaseIds.Error;
+
+        if (!notionDatabaseIds.Value.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
         return Ok(await notionApiService.GetTasks(notionDatabaseId));
@@ -163,12 +193,15 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
     public async Task<ActionResult> UpdateTasksForDatabase(Guid notionDatabaseId) {
         var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
-        if (!notionDatabaseIds.Contains(notionDatabaseId))
+        if (!notionDatabaseIds.IsOk)
+            return notionDatabaseIds.Error;
+
+        if (!notionDatabaseIds.Value.Contains(notionDatabaseId))
             return NotFound("Notion database not found");
 
-        await notionApiService.UpdateTasks(notionDatabaseId);
+        var response = await notionApiService.UpdateTasks(notionDatabaseId);
 
-        return Ok();
+        return !response.IsOk ? response.Error : Ok();
     }
 
     [HttpGet]
@@ -177,8 +210,14 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
     public async Task<ActionResult> UpdateTasksForDatabases() {
         var notionDatabaseIds = await notionApiService.GetSharedDatabases();
 
-        foreach (var notionDatabaseId in notionDatabaseIds)
-            await notionApiService.UpdateTasks(notionDatabaseId);
+        if (!notionDatabaseIds.IsOk)
+            return notionDatabaseIds.Error;
+
+        foreach (var notionDatabaseId in notionDatabaseIds.Value) {
+            var response = await notionApiService.UpdateTasks(notionDatabaseId);
+            if (!response.IsOk)
+                return response.Error;
+        }
 
         return Ok();
     }
