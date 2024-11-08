@@ -66,6 +66,7 @@ public class NotionControllerTests {
         // Assert
         Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
         Assert.AreEqual(unauthorizedObject.Value, (result.Result as ObjectResult)!.Value);
+        Assert.AreEqual(unauthorizedObject.StatusCode, (result.Result as ObjectResult)!.StatusCode);
     }
 
     [TestMethod]
@@ -131,6 +132,29 @@ public class NotionControllerTests {
     }
 
     [TestMethod]
+    public async Task GetNotionDatabaseRules_GetSharedDatabasesFails_ReturnsSharedDatabasesError() {
+        // Arrange
+        var unauthorizedObject = new ObjectResult("unauthorized!") {
+            StatusCode = 401
+        };
+
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
+            .Setup(n => n.GetSharedDatabases())
+            .ReturnsAsync(Result<List<Guid>, ActionResult>.Err(unauthorizedObject));
+
+        var sut = new NotionController(mockNotionApiService.Object, null);
+
+        // Act
+        var result = await sut.GetNotionDatabaseRules(Guid.NewGuid());
+
+        // Assert
+        Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
+        Assert.AreEqual(unauthorizedObject.Value, (result.Result as ObjectResult)!.Value);
+        Assert.AreEqual(unauthorizedObject.StatusCode, (result.Result as ObjectResult)!.StatusCode);
+    }
+
+    [TestMethod]
     public async Task GetNotionDatabaseRules_DatabaseDoesNotExist_ReturnsNotFound() {
         // Arrange
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
@@ -150,7 +174,7 @@ public class NotionControllerTests {
 
         Assert.AreEqual("Notion database not found", (result.Result as NotFoundObjectResult)!.Value);
     }
-
+    
     [TestMethod]
     public async Task GetNotionDatabaseRule_ReturnsRule() {
         // Arrange
@@ -179,7 +203,32 @@ public class NotionControllerTests {
         var response = (result.Result as OkObjectResult)!.Value as NotionDatabaseRule;
         Assert.AreEqual(notionRules[0], response);
     }
+    
+    [TestMethod]
+    public async Task GetNotionDatabaseRule_GetSharedDatabasesFails_ReturnsSharedDatabasesError() {
+        // Arrange
+        var unauthorizedObject = new ObjectResult("unauthorized!") {
+            StatusCode = 401
+        };
+        
+        var ruleId = Guid.NewGuid();
+        
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
+            .Setup(n => n.GetSharedDatabases())
+            .ReturnsAsync(Result<List<Guid>, ActionResult>.Err(unauthorizedObject));
 
+        var sut = new NotionController(mockNotionApiService.Object, null);
+
+        // Act
+        var result = await sut.GetNotionDatabaseRule(ruleId);
+
+        // Assert
+        Assert.IsInstanceOfType(result.Result, typeof(ObjectResult));
+        Assert.AreEqual(unauthorizedObject.Value, (result.Result as ObjectResult)!.Value);
+        Assert.AreEqual(unauthorizedObject.StatusCode, (result.Result as ObjectResult)!.StatusCode);
+    }
+    
     [TestMethod]
     public async Task GetNotionDatabaseRule_NotionRuleIsNotForUserDatabase_ReturnsNotFound() {
         // Arrange
@@ -273,6 +322,63 @@ public class NotionControllerTests {
     }
 
     [TestMethod]
+    public async Task ModifyNotionDatabaseRule_GetSharedDatabasesFails_ReturnsSharedDatabasesError() {
+        // Arrange
+        var unauthorizedObject = new ObjectResult("unauthorized!") {
+            StatusCode = 401
+        };
+        
+        var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1)[0];
+        
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
+            .Setup(n => n.GetSharedDatabases())
+            .ReturnsAsync(Result<List<Guid>, ActionResult>.Err(unauthorizedObject));
+
+        var sut = new NotionController(mockNotionApiService.Object, null);
+
+        // Act
+        var result = await sut.ModifyNotionDatabaseRule(Guid.NewGuid(), modifiedNotionDatabaseRule);
+
+        // Assert
+        Assert.IsInstanceOfType(result, typeof(ObjectResult));
+        Assert.AreEqual(unauthorizedObject.Value, (result as ObjectResult)!.Value);
+        Assert.AreEqual(unauthorizedObject.StatusCode, (result as ObjectResult)!.StatusCode);
+    }
+    
+    [TestMethod]
+    public async Task ModifyNotionDatabaseRule_GetStatesFails_ReturnsStatesError() {
+        // Arrange
+        var unauthorizedObject = new ObjectResult("unauthorized!") {
+            StatusCode = 401
+        };
+
+        var ruleId = Guid.NewGuid();
+        var databaseId = Guid.NewGuid();
+        var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
+        var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1, ruleId)[0];
+        
+        var mockNotionApiService = new Mock<INotionApiService>();
+        mockNotionApiService
+            .Setup(n => n.GetSharedDatabases())
+            .ReturnsAsync(sharedDatabases);
+
+        mockNotionApiService
+            .Setup(p => p.GetStates(It.IsAny<Guid>()))
+            .ReturnsAsync(Result<List<string>, ActionResult>.Err(unauthorizedObject));
+
+        var sut = new NotionController(mockNotionApiService.Object, null);
+
+        // Act
+        var result = await sut.ModifyNotionDatabaseRule(databaseId, modifiedNotionDatabaseRule);
+
+        // Assert
+        Assert.IsInstanceOfType(result, typeof(ObjectResult));
+        Assert.AreEqual(unauthorizedObject.Value, (result as ObjectResult)!.Value);
+        Assert.AreEqual(unauthorizedObject.StatusCode, (result as ObjectResult)!.StatusCode);
+    }
+    
+    [TestMethod]
     public async Task ModifyNotionDatabaseRule_DatabaseIdIsNotIncluded_NotFound() {
         // Arrange
         var databaseId = Guid.NewGuid();
@@ -308,7 +414,7 @@ public class NotionControllerTests {
 
         mockNotionApiService
             .Setup(p => p.GetStates(It.IsAny<Guid>()))
-            .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgress", "Completed"]));
+            .ReturnsAsync(Result<List<string>, ActionResult>.Ok(["InProgressss", "Completedddd"]));
 
         var sut = new NotionController(mockNotionApiService.Object, null);
 
