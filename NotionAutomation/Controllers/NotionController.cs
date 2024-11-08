@@ -192,7 +192,7 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
         var taskResult = await notionApiService.GetTasks(notionDatabaseId);
 
         return taskResult.Match(
-            tasks => Ok(notionDatabaseId),
+            tasks => Ok(tasks),
             error => error
         );
     }
