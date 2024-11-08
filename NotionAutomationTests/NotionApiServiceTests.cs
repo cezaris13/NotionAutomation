@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,15 +60,7 @@ public class NotionApiServiceTests {
     [TestMethod]
     public async Task GetSharedDatabases_ReturnsListOfGuids() {
         // Arrange
-        var taskObjects = new List<TaskObject>();
-        for (var i = 0; i < 2; i++)
-            taskObjects.Add(new TaskObject {
-                Id = Guid.NewGuid()
-            });
-
-        var queryObject = new QueryObject {
-            Results = taskObjects
-        };
+        var queryObject = ObjectFactory.CreateQueryObjects(1)[0];
 
         m_mockHttpMessageHandler
             .Protected()
@@ -99,7 +92,7 @@ public class NotionApiServiceTests {
     }
 
     [TestMethod]
-    public async Task GetSharedDatabases_NoBearerToken_ThrowsUnauthorizedException() {
+    public async Task GetSharedDatabases_NoBearerToken_UnauthorizedResult() {
         var headerDictionary = new HeaderDictionary();
 
         m_mockHttpRequest
@@ -109,15 +102,17 @@ public class NotionApiServiceTests {
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
-        var exception = await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(
-            () => sut.GetSharedDatabases());
+        var result = await sut.GetSharedDatabases();
 
         // Assert
-        Assert.AreEqual("Bearer token is required", exception.Message);
+        Assert.IsTrue(!result.IsOk);
+        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
+        Assert.AreEqual("Bearer token was not found", (result.Error as ObjectResult)!.Value);
+        Assert.AreEqual(401, (result.Error as ObjectResult)!.StatusCode);
     }
 
     [TestMethod]
-    public async Task GetSharedDatabases_NotOkResult_ThrowsHttpRequestException() {
+    public async Task GetSharedDatabases_NotOkResult_Returns404() {
         // Arrange
         var statusCode = HttpStatusCode.NotFound;
 
@@ -142,17 +137,17 @@ public class NotionApiServiceTests {
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
-        var exception = await Assert.ThrowsExceptionAsync<BadHttpRequestException>(
-            () => sut.GetSharedDatabases());
+        var result = await sut.GetSharedDatabases();
 
         // Assert
-        Assert.AreEqual(
-            $"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).",
-            exception.Message);
+        Assert.IsTrue(!result.IsOk);
+        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
+        Assert.AreEqual((int)statusCode, (result.Error as ObjectResult)!.StatusCode);
+        Assert.AreEqual($"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).", (result.Error as ObjectResult)!.Value);
     }
 
     [TestMethod]
-    public async Task GetSharedDatabases_FailsToDeserialize_ThrowsException() {
+    public async Task GetSharedDatabases_FailsToDeserialize_Returns500() {
         // Arrange
         m_mockHttpMessageHandler
             .Protected()
@@ -175,11 +170,12 @@ public class NotionApiServiceTests {
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
-        var exception = await Assert.ThrowsExceptionAsync<Exception>(
-            () => sut.GetSharedDatabases());
+        var result = await sut.GetSharedDatabases();
 
         // Assert
-        Assert.AreEqual("failed to deserialize", exception.Message);
+        Assert.IsTrue(!result.IsOk);
+        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
+        Assert.AreEqual(500, (result.Error as ObjectResult)!.StatusCode);
     }
 
     [TestMethod]
@@ -218,7 +214,7 @@ public class NotionApiServiceTests {
     }
 
     [TestMethod]
-    public async Task GetStates_NoBearerToken_ThrowsUnauthorizedException() {
+    public async Task GetStates_NoBearerToken_Returns401() {
         // Arrange
         var headerDictionary = new HeaderDictionary();
 
@@ -229,15 +225,17 @@ public class NotionApiServiceTests {
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
-        var exception = await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(
-            () => sut.GetStates(Guid.NewGuid()));
+        var result = await sut.GetSharedDatabases();
 
         // Assert
-        Assert.AreEqual("Bearer token is required", exception.Message);
+        Assert.IsTrue(!result.IsOk);
+        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
+        Assert.AreEqual("Bearer token was not found", (result.Error as ObjectResult)!.Value);
+        Assert.AreEqual(401, (result.Error as ObjectResult)!.StatusCode);
     }
 
     [TestMethod]
-    public async Task GetStates_NotOkResult_ThrowsHttpRequestException() {
+    public async Task GetStates_NotOkResult_ReturnsNotFound() {
         // Arrange
         var statusCode = HttpStatusCode.NotFound;
 
@@ -262,17 +260,17 @@ public class NotionApiServiceTests {
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
-        var exception = await Assert.ThrowsExceptionAsync<BadHttpRequestException>(
-            () => sut.GetStates(Guid.NewGuid()));
+        var result = await sut.GetStates(Guid.NewGuid());
 
         // Assert
-        Assert.AreEqual(
-            $"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).",
-            exception.Message);
+        Assert.IsTrue(!result.IsOk);
+        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
+        Assert.AreEqual((int)statusCode, (result.Error as ObjectResult)!.StatusCode);
+        Assert.AreEqual($"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).", (result.Error as ObjectResult)!.Value);
     }
 
     [TestMethod]
-    public async Task GetStates_FailsToDeserialize_ThrowsException() {
+    public async Task GetStates_FailsToDeserialize_Returns500() {
         // Arrange
         m_mockHttpMessageHandler
             .Protected()
@@ -295,11 +293,12 @@ public class NotionApiServiceTests {
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
         // Act
-        var exception = await Assert.ThrowsExceptionAsync<Exception>(
-            () => sut.GetStates(Guid.NewGuid()));
+        var result = await sut.GetStates(Guid.NewGuid());
 
         // Assert
-        Assert.AreEqual("failed to deserialize", exception.Message);
+        Assert.IsTrue(!result.IsOk);
+        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
+        Assert.AreEqual(500, (result.Error as ObjectResult)!.StatusCode);
     }
 
     [TestMethod]
@@ -418,7 +417,7 @@ public class NotionApiServiceTests {
         // Assert
         m_mockHttpMessageHandler.Protected().Verify(
             "SendAsync",
-            Times.Exactly(2),
+            Times.Exactly(4),
             ItExpr.IsAny<HttpRequestMessage>(),
             ItExpr.IsAny<CancellationToken>()
         );
