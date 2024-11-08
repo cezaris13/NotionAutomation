@@ -564,7 +564,9 @@ public class NotionControllerTests {
 
         var notionDatabaseRule = new NotionDatabaseRuleObject {
             StartingState = "RandomState",
-            EndingState = "RandomState"
+            EndingState = "RandomState",
+            DayOffset = 2,
+            OnDay = "OnBefore"
         };
 
         // Act

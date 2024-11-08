@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -53,3 +54,6 @@ host.UseSwaggerUI(options => { options.SwaggerEndpoint("v1/swagger.json", "v1");
 host.MapControllers();
 
 await host.RunAsync();
+
+[ExcludeFromCodeCoverage]
+public partial class Program { }
