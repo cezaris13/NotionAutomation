@@ -1,3 +1,6 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
 using NotionAutomation.Objects;
 
 namespace NotionAutomationTests;
@@ -92,5 +95,12 @@ public static class ObjectFactory {
         }
 
         return taskObjects;
+    }
+    
+    public static  HttpResponseMessage CreateResponse(HttpStatusCode statusCode = HttpStatusCode.OK, object content = null ) {
+        return new HttpResponseMessage {
+            StatusCode = statusCode,
+            Content = new StringContent(JsonSerializer.Serialize(content), Encoding.UTF8, "application/json")
+        };
     }
 }

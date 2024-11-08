@@ -10,7 +10,6 @@ using Moq;
 using Moq.Protected;
 using NotionAutomation;
 using NotionAutomation.Db;
-using NotionAutomation.Objects;
 
 namespace NotionAutomationTests;
 
@@ -27,7 +26,6 @@ public class NotionApiServiceTests {
     [TestInitialize]
     public void Setup() {
         var services = new ServiceCollection();
-
         services.AddDbContext<NotionDbContext>(options =>
             options.UseInMemoryDatabase("TestDb"));
 
@@ -69,10 +67,7 @@ public class NotionApiServiceTests {
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonSerializer.Serialize(queryObject), Encoding.UTF8, "application/json")
-            });
+            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObject));
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
 
@@ -123,10 +118,7 @@ public class NotionApiServiceTests {
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = statusCode,
-                Content = new StringContent("", Encoding.UTF8, "application/json")
-            });
+            .ReturnsAsync(ObjectFactory.CreateResponse(statusCode, string.Empty));
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
 
@@ -156,10 +148,7 @@ public class NotionApiServiceTests {
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("'{ \"Id\": 1, \"Name\": \"Coke\" }'", Encoding.UTF8, "application/json")
-            });
+            .ReturnsAsync(ObjectFactory.CreateResponse(content: "'{ \"Id\": 1, \"Name\": \"Coke\" }'"));
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
 
@@ -191,10 +180,7 @@ public class NotionApiServiceTests {
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonSerializer.Serialize(statesObject), Encoding.UTF8, "application/json")
-            });
+            .ReturnsAsync(ObjectFactory.CreateResponse(content: statesObject));
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
 
@@ -246,10 +232,7 @@ public class NotionApiServiceTests {
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = statusCode,
-                Content = new StringContent("", Encoding.UTF8, "application/json")
-            });
+            .ReturnsAsync(ObjectFactory.CreateResponse(statusCode, string.Empty));
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
 
@@ -279,10 +262,7 @@ public class NotionApiServiceTests {
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("'{ \"Id\": 1, \"Name\": \"Coke\" }'", Encoding.UTF8, "application/json")
-            });
+            .ReturnsAsync(ObjectFactory.CreateResponse(content: "'{ \"Id\": 1, \"Name\": \"Coke\" }'"));
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
 
@@ -321,16 +301,8 @@ public class NotionApiServiceTests {
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonSerializer.Serialize(queryObjects[0]), Encoding.UTF8,
-                    "application/json")
-            })
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonSerializer.Serialize(queryObjects[1]), Encoding.UTF8,
-                    "application/json")
-            });
+            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObjects[0]))
+            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObjects[1]));
 
         var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
 
@@ -375,12 +347,8 @@ public class NotionApiServiceTests {
         var queryObjects = ObjectFactory.CreateQueryObjects(2);
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-        var statesResponseMessage = new HttpResponseMessage {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(
-                JsonSerializer.Serialize(ObjectFactory.CreateStatesObject(["state"])), Encoding.UTF8,
-                "application/json")
-        };
+        var statesResponseMessage = ObjectFactory.CreateResponse(content: ObjectFactory.CreateStatesObject(["state"]));
+        
         m_mockHttpMessageHandler
             .Protected()
             .SetupSequence<Task<HttpResponseMessage>>(
@@ -388,16 +356,8 @@ public class NotionApiServiceTests {
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonSerializer.Serialize(queryObjects[0]), Encoding.UTF8,
-                    "application/json")
-            })
-            .ReturnsAsync(new HttpResponseMessage {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonSerializer.Serialize(queryObjects[1]), Encoding.UTF8,
-                    "application/json")
-            })
+            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObjects[0]))
+            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObjects[1]))
             .ReturnsAsync(statesResponseMessage)
             .ReturnsAsync(statesResponseMessage)
             .ReturnsAsync(statesResponseMessage)
