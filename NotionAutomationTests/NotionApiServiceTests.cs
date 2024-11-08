@@ -316,6 +316,7 @@ public class NotionApiServiceTests {
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
             m_mockHttpContextAccessor.Object);
+
         // Act
         var result = await sut.GetTasks(databaseId);
 
