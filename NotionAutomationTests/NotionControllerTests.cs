@@ -22,7 +22,7 @@ public class NotionControllerTests {
             options.UseInMemoryDatabase("TestDb"));
 
         m_serviceProvider = services.BuildServiceProvider();
-        
+
         m_unauthorizedResult = new ObjectResult("unauthorized!") {
             StatusCode = 401
         };
@@ -171,7 +171,7 @@ public class NotionControllerTests {
 
         Assert.AreEqual("Notion database not found", (result.Result as NotFoundObjectResult)!.Value);
     }
-    
+
     [TestMethod]
     public async Task GetNotionDatabaseRule_ReturnsRule() {
         // Arrange
@@ -179,7 +179,7 @@ public class NotionControllerTests {
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
@@ -200,12 +200,12 @@ public class NotionControllerTests {
         var response = (result.Result as OkObjectResult)!.Value as NotionDatabaseRule;
         Assert.AreEqual(notionRules[0], response);
     }
-    
+
     [TestMethod]
     public async Task GetNotionDatabaseRule_GetSharedDatabasesFails_ReturnsSharedDatabasesError() {
         // Arrange
         var ruleId = Guid.NewGuid();
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -221,14 +221,14 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result.Result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result.Result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task GetNotionDatabaseRule_NotionRuleIsNotForUserDatabase_ReturnsNotFound() {
         // Arrange
         var ruleId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, ruleId);
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
@@ -255,7 +255,7 @@ public class NotionControllerTests {
         var ruleId = Guid.NewGuid();
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(1);
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
@@ -284,7 +284,7 @@ public class NotionControllerTests {
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, ruleId, databaseId);
         var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1, ruleId)[0];
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
@@ -317,7 +317,7 @@ public class NotionControllerTests {
     public async Task ModifyNotionDatabaseRule_GetSharedDatabasesFails_ReturnsSharedDatabasesError() {
         // Arrange
         var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1)[0];
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -333,7 +333,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task ModifyNotionDatabaseRule_GetStatesFails_ReturnsStatesError() {
         // Arrange
@@ -341,7 +341,7 @@ public class NotionControllerTests {
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
         var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1, ruleId)[0];
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -361,7 +361,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task ModifyNotionDatabaseRule_DatabaseIdIsNotIncluded_NotFound() {
         // Arrange
@@ -501,7 +501,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task AddNotionDatabaseRule_GetStatesFails_ReturnsStatesError() {
         // Arrange
@@ -528,7 +528,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task AddNotionDatabaseRule_DatabaseIdIsNotIncluded_NotFound() {
         // Arrange
@@ -588,7 +588,7 @@ public class NotionControllerTests {
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, ruleId, databaseId);
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
@@ -630,7 +630,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task RemoveNotionDatabaseRule_NoRuleFound_NotFoundResult() {
         // Arrange
@@ -638,7 +638,7 @@ public class NotionControllerTests {
         var databaseId = Guid.NewGuid();
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
         var notionRules = new List<NotionDatabaseRule>();
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
@@ -666,7 +666,7 @@ public class NotionControllerTests {
         var databaseId = Guid.NewGuid();
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, ruleId, databaseId);
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
@@ -765,7 +765,7 @@ public class NotionControllerTests {
         Assert.AreEqual(states.Count, response.Count);
         CollectionAssert.AreEquivalent(states, response);
     }
-    
+
     [TestMethod]
     public async Task GetStates_GetSharedDatabasesFails_ReturnsSharedDatabaseError() {
         // Arrange
@@ -786,7 +786,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result.Result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result.Result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task GetStates_GetStatesFails_ReturnsGetStatesError() {
         // Arrange
@@ -812,7 +812,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result.Result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result.Result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task GetTasks_DoesNotContainDatabaseId_NotFoundResult() {
         // Arrange
@@ -887,7 +887,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result.Result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result.Result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task GetTasks_GetSharedDatabasesFails_ReturnsSharedDatabaseError() {
         // Arrange
@@ -906,7 +906,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result.Result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result.Result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task GetTasks_ReturnsListOfStates() {
         // Arrange
@@ -935,7 +935,7 @@ public class NotionControllerTests {
         Assert.AreEqual(states.Count, response.Count);
         CollectionAssert.AreEquivalent(states, response);
     }
-    
+
     [TestMethod]
     public async Task UpdateTasksForDatabase_DoesNotContainDatabaseId_NotFoundResult() {
         // Arrange
@@ -980,7 +980,7 @@ public class NotionControllerTests {
         // Assert
         Assert.IsInstanceOfType(result, typeof(OkResult));
     }
-    
+
     [TestMethod]
     public async Task UpdateTasksForDatabase_GetSharedDatabasesFails_ReturnsSharedDatabaseError() {
         // Arrange
@@ -999,7 +999,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task UpdateTasksForDatabases_ReturnsOk() {
         // Arrange
@@ -1025,7 +1025,7 @@ public class NotionControllerTests {
         mockNotionApiService.Verify(n => n.UpdateTasks(It.IsAny<Guid>()), Times.Exactly(3));
         mockNotionApiService.Verify(n => n.GetSharedDatabases(), Times.Once);
     }
-    
+
     [TestMethod]
     public async Task UpdateTasksForDatabases_GetSharedDatabasesFail_ReturnsSharedDatabaseError() {
         // Arrange
@@ -1044,7 +1044,7 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.Value, (result as ObjectResult)!.Value);
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result as ObjectResult)!.StatusCode);
     }
-    
+
     [TestMethod]
     public async Task UpdateTasksForDatabases_UpdateFailsInTheMiddle_StopsUpdatingAndReturnsError() {
         // Arrange

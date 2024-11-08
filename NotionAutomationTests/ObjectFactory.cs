@@ -96,8 +96,9 @@ public static class ObjectFactory {
 
         return taskObjects;
     }
-    
-    public static  HttpResponseMessage CreateResponse(HttpStatusCode statusCode = HttpStatusCode.OK, object content = null ) {
+
+    public static HttpResponseMessage CreateResponse(HttpStatusCode statusCode = HttpStatusCode.OK,
+        object content = null) {
         return new HttpResponseMessage {
             StatusCode = statusCode,
             Content = new StringContent(JsonSerializer.Serialize(content), Encoding.UTF8, "application/json")

@@ -135,7 +135,9 @@ public class NotionApiServiceTests {
         Assert.IsTrue(!result.IsOk);
         Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
         Assert.AreEqual((int)statusCode, (result.Error as ObjectResult)!.StatusCode);
-        Assert.AreEqual($"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).", (result.Error as ObjectResult)!.Value);
+        Assert.AreEqual(
+            $"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).",
+            (result.Error as ObjectResult)!.Value);
     }
 
     [TestMethod]
@@ -249,7 +251,9 @@ public class NotionApiServiceTests {
         Assert.IsTrue(!result.IsOk);
         Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
         Assert.AreEqual((int)statusCode, (result.Error as ObjectResult)!.StatusCode);
-        Assert.AreEqual($"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).", (result.Error as ObjectResult)!.Value);
+        Assert.AreEqual(
+            $"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).",
+            (result.Error as ObjectResult)!.Value);
     }
 
     [TestMethod]
@@ -348,7 +352,7 @@ public class NotionApiServiceTests {
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
         var statesResponseMessage = ObjectFactory.CreateResponse(content: ObjectFactory.CreateStatesObject(["state"]));
-        
+
         m_mockHttpMessageHandler
             .Protected()
             .SetupSequence<Task<HttpResponseMessage>>(
@@ -371,6 +375,7 @@ public class NotionApiServiceTests {
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
             m_mockHttpContextAccessor.Object);
+
         // Act
         await sut.UpdateTasks(databaseId);
 
