@@ -182,9 +182,8 @@ public class NotionControllerTests {
 
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
-        await mockDbContext.SaveChangesAsync();
-
+        await PrepareNotionDbContext(mockDbContext, notionRules);
+        
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -231,8 +230,7 @@ public class NotionControllerTests {
 
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
-        await mockDbContext.SaveChangesAsync();
+        await PrepareNotionDbContext(mockDbContext, notionRules);
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -255,12 +253,11 @@ public class NotionControllerTests {
         var ruleId = Guid.NewGuid();
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(1);
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
-
+        
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
-        await mockDbContext.SaveChangesAsync();
-
+        await PrepareNotionDbContext(mockDbContext, notionRules);
+        
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -287,9 +284,8 @@ public class NotionControllerTests {
 
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
-        await mockDbContext.SaveChangesAsync();
-
+        await PrepareNotionDbContext(mockDbContext, notionRules);
+        
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -418,12 +414,11 @@ public class NotionControllerTests {
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, databaseId: databaseId);
         var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1, ruleId)[0];
-
+        
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
-        await mockDbContext.SaveChangesAsync();
-
+        await PrepareNotionDbContext(mockDbContext, notionRules);
+        
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -453,9 +448,8 @@ public class NotionControllerTests {
 
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
-        await mockDbContext.SaveChangesAsync();
-
+        await PrepareNotionDbContext(mockDbContext, notionRules);
+        
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -591,9 +585,8 @@ public class NotionControllerTests {
 
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
-        await mockDbContext.SaveChangesAsync();
-
+        await PrepareNotionDbContext(mockDbContext, notionRules);
+        
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -641,9 +634,8 @@ public class NotionControllerTests {
 
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
-        await mockDbContext.SaveChangesAsync();
-
+        await PrepareNotionDbContext(mockDbContext, notionRules);
+        
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -669,8 +661,7 @@ public class NotionControllerTests {
 
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
-        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
-        await mockDbContext.SaveChangesAsync();
+        await PrepareNotionDbContext(mockDbContext, notionRules);
 
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
@@ -1071,5 +1062,10 @@ public class NotionControllerTests {
         Assert.AreEqual(m_unauthorizedResult.StatusCode, (result as ObjectResult)!.StatusCode);
         mockNotionApiService.Verify(n => n.UpdateTasks(It.IsAny<Guid>()), Times.Exactly(2));
         mockNotionApiService.Verify(n => n.GetSharedDatabases(), Times.Once);
+    }
+
+    private async Task PrepareNotionDbContext(NotionDbContext mockDbContext, List<NotionDatabaseRule> notionRules) {
+        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
+        await mockDbContext.SaveChangesAsync();
     }
 }

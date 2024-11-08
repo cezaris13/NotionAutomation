@@ -1,6 +1,4 @@
 using System.Net;
-using System.Text;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -9,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
 using NotionAutomation;
+using NotionAutomation.DataTypes;
 using NotionAutomation.Db;
 
 namespace NotionAutomationTests;
@@ -60,20 +59,10 @@ public class NotionApiServiceTests {
         // Arrange
         var queryObject = ObjectFactory.CreateQueryObjects(1)[0];
 
-        m_mockHttpMessageHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObject));
-
-        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
+        SetupHttpMessageHandlerMock([
+            ObjectFactory.CreateResponse(content: queryObject)
+        ]);
+        SetupBearerToken();
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
@@ -88,11 +77,7 @@ public class NotionApiServiceTests {
 
     [TestMethod]
     public async Task GetSharedDatabases_NoBearerToken_UnauthorizedResult() {
-        var headerDictionary = new HeaderDictionary();
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
+        SetupBearerToken(isEmptyBearerToken: true);
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
@@ -111,20 +96,10 @@ public class NotionApiServiceTests {
         // Arrange
         var statusCode = HttpStatusCode.NotFound;
 
-        m_mockHttpMessageHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(ObjectFactory.CreateResponse(statusCode, string.Empty));
-
-        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
+        SetupHttpMessageHandlerMock([
+            ObjectFactory.CreateResponse(statusCode, string.Empty)
+        ]);
+        SetupBearerToken();
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
@@ -139,56 +114,17 @@ public class NotionApiServiceTests {
             $"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).",
             (result.Error as ObjectResult)!.Value);
     }
-
-    [TestMethod]
-    public async Task GetSharedDatabases_FailsToDeserialize_Returns500() {
-        // Arrange
-        m_mockHttpMessageHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(ObjectFactory.CreateResponse(content: "'{ \"Id\": 1, \"Name\": \"Coke\" }'"));
-
-        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
-
-        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
-
-        // Act
-        var result = await sut.GetSharedDatabases();
-
-        // Assert
-        Assert.IsTrue(!result.IsOk);
-        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
-        Assert.AreEqual(500, (result.Error as ObjectResult)!.StatusCode);
-    }
-
+    
     [TestMethod]
     public async Task GetStates_ReturnsListOfStates() {
         // Arrange
         List<string> states = ["states1", "states2"];
         var statesObject = ObjectFactory.CreateStatesObject(states);
 
-        m_mockHttpMessageHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(ObjectFactory.CreateResponse(content: statesObject));
-
-        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
+        SetupHttpMessageHandlerMock([
+            ObjectFactory.CreateResponse(content: statesObject)
+        ]);
+        SetupBearerToken();
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
@@ -202,13 +138,28 @@ public class NotionApiServiceTests {
     }
 
     [TestMethod]
+    public async Task GetSharedDatabases_FailsToDeserialize_Returns500() {
+        // Arrange
+        SetupHttpMessageHandlerMock([
+            ObjectFactory.CreateResponse(content: "'{ \"Id\": 1, \"Name\": \"Coke\" }'")
+        ]);
+        SetupBearerToken();
+
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
+
+        // Act
+        var result = await sut.GetSharedDatabases();
+
+        // Assert
+        Assert.IsTrue(!result.IsOk);
+        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
+        Assert.AreEqual(500, (result.Error as ObjectResult)!.StatusCode);
+    }
+
+    [TestMethod]
     public async Task GetStates_NoBearerToken_Returns401() {
         // Arrange
-        var headerDictionary = new HeaderDictionary();
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
+        SetupBearerToken(isEmptyBearerToken: true);
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
@@ -227,20 +178,10 @@ public class NotionApiServiceTests {
         // Arrange
         var statusCode = HttpStatusCode.NotFound;
 
-        m_mockHttpMessageHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(ObjectFactory.CreateResponse(statusCode, string.Empty));
-
-        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
+        SetupHttpMessageHandlerMock([
+            ObjectFactory.CreateResponse(statusCode, string.Empty)
+        ]);
+        SetupBearerToken();
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
@@ -259,20 +200,10 @@ public class NotionApiServiceTests {
     [TestMethod]
     public async Task GetStates_FailsToDeserialize_Returns500() {
         // Arrange
-        m_mockHttpMessageHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(ObjectFactory.CreateResponse(content: "'{ \"Id\": 1, \"Name\": \"Coke\" }'"));
-
-        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
+        SetupHttpMessageHandlerMock([
+            ObjectFactory.CreateResponse(content: "'{ \"Id\": 1, \"Name\": \"Coke\" }'")
+        ]);
+        SetupBearerToken();
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, null, m_mockHttpContextAccessor.Object);
 
@@ -288,31 +219,19 @@ public class NotionApiServiceTests {
     [TestMethod]
     public async Task GetTasks_ReturnListOfTasks() {
         // Assign
-        using var scope = m_serviceProvider.CreateScope();
-        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
-
         var queryObjects = ObjectFactory.CreateQueryObjects(2);
+
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
 
-        m_mockHttpMessageHandler
-            .Protected()
-            .SetupSequence<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObjects[0]))
-            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObjects[1]));
-
-        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
+        SetupHttpMessageHandlerMock(queryObjects
+            .Select(p=>ObjectFactory.CreateResponse(content: p)));
+        SetupBearerToken();
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
             m_mockHttpContextAccessor.Object);
@@ -339,53 +258,147 @@ public class NotionApiServiceTests {
         CollectionAssert.AreEquivalent(tasks.Select(p => p.Id).ToList(), result.Value.Select(p => p.Id).ToList());
     }
 
-
     [TestMethod]
-    public async Task UpdateTasks_UpdatesTasks() {
+    public async Task GetTasks_OneRequestsFails_ReturnErrorMessage() {
         // Assign
-        using var scope = m_serviceProvider.CreateScope();
-        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         var ruleId = Guid.NewGuid();
         var databaseId = Guid.NewGuid();
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
+        var unauthorizedResponse = ObjectFactory.CreateResponse(statusCode: HttpStatusCode.Unauthorized);
+        var queryObjects = ObjectFactory.CreateQueryObjects(3);
 
-        var queryObjects = ObjectFactory.CreateQueryObjects(2);
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
         await mockDbContext.SaveChangesAsync();
-        var statesResponseMessage = ObjectFactory.CreateResponse(content: ObjectFactory.CreateStatesObject(["state"]));
 
-        m_mockHttpMessageHandler
-            .Protected()
-            .SetupSequence<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObjects[0]))
-            .ReturnsAsync(ObjectFactory.CreateResponse(content: queryObjects[1]))
-            .ReturnsAsync(statesResponseMessage)
-            .ReturnsAsync(statesResponseMessage)
-            .ReturnsAsync(statesResponseMessage)
-            .ReturnsAsync(statesResponseMessage);
-
-        var headerDictionary = new HeaderDictionary { { "Authorization", "Bearer token123" } };
-
-        m_mockHttpRequest
-            .Setup(request => request.Headers)
-            .Returns(headerDictionary);
+        SetupHttpMessageHandlerMock([
+            ObjectFactory.CreateResponse(content: queryObjects[0]),
+            unauthorizedResponse
+        ]);
+        SetupBearerToken();
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
             m_mockHttpContextAccessor.Object);
 
         // Act
-        await sut.UpdateTasks(databaseId);
+        var result = await sut.GetTasks(databaseId);
 
         // Assert
+        Assert.IsTrue(!result.IsOk);
+        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
+        Assert.AreEqual(401, (result.Error as ObjectResult)!.StatusCode);
+
         m_mockHttpMessageHandler.Protected().Verify(
             "SendAsync",
-            Times.Exactly(4),
+            Times.Exactly(2),
             ItExpr.IsAny<HttpRequestMessage>(),
             ItExpr.IsAny<CancellationToken>()
         );
+    }
+
+    [TestMethod]
+    public async Task UpdateTasks_UpdatesTasks() {
+        // Assign
+        var ruleId = Guid.NewGuid();
+        var databaseId = Guid.NewGuid();
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
+        var queryObjects = ObjectFactory.CreateQueryObjects(2);
+        var statesObject = ObjectFactory.CreateStatesObject(["state"]);
+        
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
+        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
+        await mockDbContext.SaveChangesAsync();
+
+        SetupHttpMessageHandlerMock([
+            ObjectFactory.CreateResponse(content: queryObjects[0]),
+            ObjectFactory.CreateResponse(content: queryObjects[1]),
+            ObjectFactory.CreateResponse(content: statesObject),
+            ObjectFactory.CreateResponse(content: statesObject),
+            ObjectFactory.CreateResponse(content: statesObject),
+            ObjectFactory.CreateResponse(content: statesObject) 
+        ]);
+
+        SetupBearerToken();
+
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
+            m_mockHttpContextAccessor.Object);
+
+        // Act
+        var response = await sut.UpdateTasks(databaseId);
+
+        // Assert
+        Assert.IsTrue(response.IsOk);
+        Assert.AreEqual(Unit.Value, response.Value);
+        m_mockHttpMessageHandler.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(6),
+            ItExpr.IsAny<HttpRequestMessage>(),
+            ItExpr.IsAny<CancellationToken>()
+        );
+    }
+
+    [TestMethod]
+    public async Task UpdateTasks_GetTasksFails_ReturnsError() {
+        // Assign
+        var ruleId = Guid.NewGuid();
+        var databaseId = Guid.NewGuid();
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
+        var queryObjects = ObjectFactory.CreateQueryObjects(2);
+        var serverErrorMessage = ObjectFactory.CreateResponse(HttpStatusCode.InternalServerError);
+
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
+        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
+        await mockDbContext.SaveChangesAsync();
+
+        SetupHttpMessageHandlerMock([
+            ObjectFactory.CreateResponse(content: queryObjects[0]),
+            serverErrorMessage
+        ]);
+        SetupBearerToken();
+
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
+            m_mockHttpContextAccessor.Object);
+
+        // Act
+        var result = await sut.UpdateTasks(databaseId);
+
+        // Assert
+        Assert.IsTrue(!result.IsOk);
+
+        m_mockHttpMessageHandler.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(2),
+            ItExpr.IsAny<HttpRequestMessage>(),
+            ItExpr.IsAny<CancellationToken>()
+        );
+        Assert.IsInstanceOfType(result.Error, typeof(ObjectResult));
+        Assert.AreEqual(500, (result.Error as ObjectResult)!.StatusCode);
+    }
+
+    private void SetupHttpMessageHandlerMock(IEnumerable<HttpResponseMessage> messages) {
+        var mockHttpMessageHandlerSetup = m_mockHttpMessageHandler
+            .Protected()
+            .SetupSequence<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            );
+
+        foreach (var message in messages)
+            mockHttpMessageHandlerSetup.ReturnsAsync(message);
+    }
+
+    private void SetupBearerToken(bool isEmptyBearerToken = false) {
+        var headerDictionary = new HeaderDictionary();
+        
+        if (!isEmptyBearerToken)
+            headerDictionary.Add("Authorization", "Bearer token123");
+
+        m_mockHttpRequest
+            .Setup(request => request.Headers)
+            .Returns(headerDictionary); 
     }
 }
