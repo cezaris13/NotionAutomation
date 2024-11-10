@@ -197,7 +197,7 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
         );
     }
 
-    [HttpGet]
+    [HttpPost]
     [Authorization]
     [Route("updateNotionDatabase")]
     public async Task<ActionResult> UpdateTasksForDatabase(Guid notionDatabaseId) {
@@ -214,7 +214,7 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
         return !response.IsOk ? response.Error : Ok();
     }
 
-    [HttpGet]
+    [HttpPost]
     [Authorization]
     [Route("updateNotionDatabases")]
     public async Task<ActionResult> UpdateTasksForDatabases() {
