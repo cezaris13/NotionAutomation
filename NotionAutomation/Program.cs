@@ -42,8 +42,11 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<INotionApiService, NotionApiService>();
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+const string secretDirectory = "/etc/secrets/";
+var directory = Directory.Exists(secretDirectory) ? secretDirectory : Directory.GetCurrentDirectory();
+
 var configurationBuilder = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
+    .SetBasePath(directory)
     .AddJsonFile("appsettings.json", optional: false);
 
 IConfiguration configuration = configurationBuilder.Build();
