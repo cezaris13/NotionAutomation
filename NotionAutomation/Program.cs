@@ -58,9 +58,7 @@ if (string.IsNullOrEmpty(connectionString)) {
     });
 }
 else {
-    builder.Services.AddDbContext<NotionDbContext>(options => {
-        options.UseNpgsql(connectionString);
-    });
+    builder.Services.AddDbContext<NotionDbContext>(options => { options.UseNpgsql(connectionString); });
 }
 
 var host = builder.Build();
@@ -72,4 +70,5 @@ host.MapControllers();
 await host.RunAsync();
 
 [ExcludeFromCodeCoverage]
-public partial class Program { }
+public partial class Program {
+}

@@ -126,8 +126,8 @@ public class NotionApiService(
                         new And { Property = "Status", Select = new FilterSelect { Equals = p.StartingState } },
                         new And {
                             Property = "Date", Date = new FilterDateObject {
-                                OnOrBefore = p.OnDay == "OnOrBefore" ? date : null,
-                                Before = p.OnDay != "OnOrBefore" ? date : null
+                                OnOrBefore = p.DateCondition == DateCondition.OnOrBefore ? date : null,
+                                Before = p.DateCondition == DateCondition.Before ? date : null
                             }
                         }
                     ]

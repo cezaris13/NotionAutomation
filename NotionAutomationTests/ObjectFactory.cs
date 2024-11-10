@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using NotionAutomation.DataTypes;
 using NotionAutomation.Objects;
 
 namespace NotionAutomationTests;
@@ -32,7 +33,7 @@ public static class ObjectFactory {
                 DatabaseId = tempDatabaseId,
                 StartingState = "InProgress",
                 EndingState = "Completed",
-                OnDay = "Wednesday",
+                DateCondition = DateCondition.OnOrBefore,
                 DayOffset = 5
             });
         }

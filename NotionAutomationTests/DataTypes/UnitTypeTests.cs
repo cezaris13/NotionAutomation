@@ -8,7 +8,7 @@ public class UnitTypeTests {
     public void ToString_ReturnsEmptyBraces() {
         // Arrange
         var sut = Unit.Value;
-        
+
         // Act
         var result = sut.ToString();
 

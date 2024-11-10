@@ -183,7 +183,7 @@ public class NotionControllerTests {
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         await PrepareNotionDbContext(mockDbContext, notionRules);
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -253,11 +253,11 @@ public class NotionControllerTests {
         var ruleId = Guid.NewGuid();
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(1);
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         await PrepareNotionDbContext(mockDbContext, notionRules);
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -285,7 +285,7 @@ public class NotionControllerTests {
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         await PrepareNotionDbContext(mockDbContext, notionRules);
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -304,7 +304,7 @@ public class NotionControllerTests {
         Assert.IsInstanceOfType(result, typeof(OkResult));
         var modifiedRule = mockDbContext.NotionDatabaseRules.FirstOrDefault(p => p.RuleId == ruleId);
         Assert.IsNotNull(modifiedRule);
-        Assert.AreEqual(modifiedNotionDatabaseRule.OnDay, modifiedRule.OnDay);
+        Assert.AreEqual(modifiedNotionDatabaseRule.DateCondition, modifiedRule.DateCondition);
         Assert.AreEqual(modifiedNotionDatabaseRule.StartingState, modifiedRule.StartingState);
         Assert.AreEqual(modifiedNotionDatabaseRule.EndingState, modifiedRule.EndingState);
     }
@@ -414,11 +414,11 @@ public class NotionControllerTests {
         var sharedDatabases = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), databaseId };
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(1, databaseId: databaseId);
         var modifiedNotionDatabaseRule = ObjectFactory.CreateNotionDatabaseRules(1, ruleId)[0];
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         await PrepareNotionDbContext(mockDbContext, notionRules);
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -449,7 +449,7 @@ public class NotionControllerTests {
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         await PrepareNotionDbContext(mockDbContext, notionRules);
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -469,7 +469,7 @@ public class NotionControllerTests {
         Assert.IsInstanceOfType(result, typeof(OkResult));
         Assert.AreEqual(notionRuleSize + 1, mockDbContext.NotionDatabaseRules.Count());
         var addedNotionDatabaseRule = mockDbContext.NotionDatabaseRules.First(p => p.DatabaseId == databaseId);
-        Assert.AreEqual(notionDatabaseRule.OnDay, addedNotionDatabaseRule.OnDay);
+        Assert.AreEqual(notionDatabaseRule.DateCondition, addedNotionDatabaseRule.DateCondition);
         Assert.AreEqual(notionDatabaseRule.StartingState, addedNotionDatabaseRule.StartingState);
         Assert.AreEqual(notionDatabaseRule.EndingState, addedNotionDatabaseRule.EndingState);
         Assert.AreEqual(databaseId, addedNotionDatabaseRule.DatabaseId);
@@ -566,7 +566,7 @@ public class NotionControllerTests {
             StartingState = "RandomState",
             EndingState = "RandomState",
             DayOffset = 2,
-            OnDay = "OnBefore"
+            DateCondition = DateCondition.OnOrBefore
         };
 
         // Act
@@ -588,7 +588,7 @@ public class NotionControllerTests {
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         await PrepareNotionDbContext(mockDbContext, notionRules);
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())
@@ -637,7 +637,7 @@ public class NotionControllerTests {
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         await PrepareNotionDbContext(mockDbContext, notionRules);
-        
+
         var mockNotionApiService = new Mock<INotionApiService>();
         mockNotionApiService
             .Setup(n => n.GetSharedDatabases())

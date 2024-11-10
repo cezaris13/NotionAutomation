@@ -114,7 +114,7 @@ public class NotionApiServiceTests {
             $"Response status code does not indicate success: {(int)statusCode} ({ReasonPhrases.GetReasonPhrase((int)statusCode)}).",
             (result.Error as ObjectResult)!.Value);
     }
-    
+
     [TestMethod]
     public async Task GetStates_ReturnsListOfStates() {
         // Arrange
@@ -230,7 +230,7 @@ public class NotionApiServiceTests {
         await mockDbContext.SaveChangesAsync();
 
         SetupHttpMessageHandlerMock(queryObjects
-            .Select(p=>ObjectFactory.CreateResponse(content: p)));
+            .Select(p => ObjectFactory.CreateResponse(content: p)));
         SetupBearerToken();
 
         var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
@@ -305,7 +305,7 @@ public class NotionApiServiceTests {
         var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
         var queryObjects = ObjectFactory.CreateQueryObjects(2);
         var statesObject = ObjectFactory.CreateStatesObject(["state"]);
-        
+
         using var scope = m_serviceProvider.CreateScope();
         var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
         mockDbContext.NotionDatabaseRules.AddRange(notionRules);
@@ -317,7 +317,7 @@ public class NotionApiServiceTests {
             ObjectFactory.CreateResponse(content: statesObject),
             ObjectFactory.CreateResponse(content: statesObject),
             ObjectFactory.CreateResponse(content: statesObject),
-            ObjectFactory.CreateResponse(content: statesObject) 
+            ObjectFactory.CreateResponse(content: statesObject)
         ]);
 
         SetupBearerToken();
@@ -393,12 +393,12 @@ public class NotionApiServiceTests {
 
     private void SetupBearerToken(bool isEmptyBearerToken = false) {
         var headerDictionary = new HeaderDictionary();
-        
+
         if (!isEmptyBearerToken)
             headerDictionary.Add("Authorization", "Bearer token123");
 
         m_mockHttpRequest
             .Setup(request => request.Headers)
-            .Returns(headerDictionary); 
+            .Returns(headerDictionary);
     }
 }

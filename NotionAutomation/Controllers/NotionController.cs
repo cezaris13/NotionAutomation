@@ -92,7 +92,7 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
         notionDatabaseRule.DayOffset = notionDatabaseRuleObject.DayOffset;
         notionDatabaseRule.StartingState = notionDatabaseRuleObject.StartingState;
         notionDatabaseRule.EndingState = notionDatabaseRuleObject.EndingState;
-        notionDatabaseRule.OnDay = notionDatabaseRuleObject.OnDay;
+        notionDatabaseRule.DateCondition = notionDatabaseRuleObject.DateCondition;
 
         notionDbContext.NotionDatabaseRules.Update(notionDatabaseRule);
         await notionDbContext.SaveChangesAsync();
@@ -125,7 +125,7 @@ public class NotionController(INotionApiService notionApiService, NotionDbContex
             RuleId = Guid.NewGuid(),
             DatabaseId = notionDatabaseId,
             DayOffset = notionDatabaseRuleObject.DayOffset,
-            OnDay = notionDatabaseRuleObject.OnDay,
+            DateCondition = notionDatabaseRuleObject.DateCondition,
             StartingState = notionDatabaseRuleObject.StartingState,
             EndingState = notionDatabaseRuleObject.EndingState
         };
