@@ -16,5 +16,10 @@ curl -X 'Post' \
   -H 'accept: */*' \
   -H 'Authorization: Bearer SOME_BEARER_TOKEN'
 ```
+and to run it periodically:
+
+```
+0 6 * * * $HOME/dirToScript/updateNotion.sh
+```
 
 You can test it out here: https://notionautomation-ofkv.onrender.com/swagger/index.html
