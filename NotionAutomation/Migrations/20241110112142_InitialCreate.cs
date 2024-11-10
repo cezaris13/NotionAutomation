@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -7,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NotionAutomation.Migrations
 {
     /// <inheritdoc />
-    [ExcludeFromCodeCoverage]
     public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
@@ -17,12 +15,12 @@ namespace NotionAutomation.Migrations
                 name: "NotionDatabaseRules",
                 columns: table => new
                 {
-                    RuleId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    DatabaseId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    StartingState = table.Column<string>(type: "TEXT", nullable: true),
-                    EndingState = table.Column<string>(type: "TEXT", nullable: true),
-                    OnDay = table.Column<string>(type: "TEXT", nullable: true),
-                    DayOffset = table.Column<int>(type: "INTEGER", nullable: false)
+                    RuleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DatabaseId = table.Column<Guid>(type: "uuid", nullable: false),
+                    StartingState = table.Column<string>(type: "text", nullable: true),
+                    EndingState = table.Column<string>(type: "text", nullable: true),
+                    OnDay = table.Column<string>(type: "text", nullable: true),
+                    DayOffset = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

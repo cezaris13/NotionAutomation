@@ -4,6 +4,7 @@ using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
@@ -38,14 +39,29 @@ builder.Services.AddMvcCore();
 builder.Services.AddMvc();
 builder.Services.AddHttpClient();
 
-builder.Services.AddSingleton<INotionApiService, NotionApiService>();
+builder.Services.AddScoped<INotionApiService, NotionApiService>();
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-builder.Services.AddDbContext<NotionDbContext>(options => {
-    const Environment.SpecialFolder folder = Environment.SpecialFolder.LocalApplicationData;
-    var path = Environment.GetFolderPath(folder);
-    var dbPath = Path.Join(path, "notionrules.db");
-    options.UseSqlite($"Data Source={dbPath}");
-});
+
+var configurationBuilder = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false);
+
+IConfiguration configuration = configurationBuilder.Build();
+var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString)) {
+    builder.Services.AddDbContext<NotionDbContext>(options => {
+        const Environment.SpecialFolder folder = Environment.SpecialFolder.LocalApplicationData;
+        var path = Environment.GetFolderPath(folder);
+        var dbPath = Path.Join(path, "notionrules.db");
+        options.UseSqlite($"Data Source={dbPath}");
+    });
+}
+else {
+    builder.Services.AddDbContext<NotionDbContext>(options => {
+        options.UseNpgsql(connectionString);
+    });
+}
 
 var host = builder.Build();
 host.UseSwagger();
