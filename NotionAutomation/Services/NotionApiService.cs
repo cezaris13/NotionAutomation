@@ -12,10 +12,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using NotionAutomation.DataTypes;
 using NotionAutomation.Db;
-using NotionAutomation.Objects;
 using static System.String;
 
-namespace NotionAutomation;
+namespace NotionAutomation.Services;
 
 public class NotionApiService(
     IHttpClientFactory httpClientFactory,

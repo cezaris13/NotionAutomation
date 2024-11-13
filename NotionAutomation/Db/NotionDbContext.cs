@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using NotionAutomation.Objects;
+using NotionAutomation.DataTypes;
 
 namespace NotionAutomation.Db;
 

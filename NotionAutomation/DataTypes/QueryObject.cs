@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace NotionAutomation.Objects;
+namespace NotionAutomation.DataTypes;
 
 public class QueryObject {
     [JsonPropertyName("results")] public List<TaskObject> Results { get; set; }

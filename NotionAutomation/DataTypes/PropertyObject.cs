@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace NotionAutomation.Objects;
+namespace NotionAutomation.DataTypes;
 
 public class PropertyObject {
     [JsonPropertyName("Status")] public Status Status { get; set; }

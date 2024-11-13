@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace NotionAutomation.Objects;
+namespace NotionAutomation.DataTypes;
 
 public class StatesObject {
     [JsonPropertyName("properties")] public Properties Properties { get; set; }

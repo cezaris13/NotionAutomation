@@ -1,6 +1,4 @@
-using NotionAutomation.DataTypes;
-
-namespace NotionAutomation.Objects;
+namespace NotionAutomation.DataTypes;
 
 public class NotionDatabaseRuleObject {
     public string StartingState { get; set; }

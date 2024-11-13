@@ -1,8 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using NotionAutomation.DataTypes;
 
-namespace NotionAutomation.Objects;
+namespace NotionAutomation.DataTypes;
 
 public class NotionDatabaseRule {
     [Key] public Guid RuleId { get; set; }

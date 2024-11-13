@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NotionAutomation;
+using NotionAutomation.Controllers;
 using NotionAutomation.DataTypes;
 using NotionAutomation.Db;
-using NotionAutomation.Objects;
+using NotionAutomation.Services;
 
 namespace NotionAutomationTests;
 

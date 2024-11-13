@@ -16,11 +16,11 @@ public readonly struct Result<T, E> {
     public bool IsOk => m_success;
 
     public static Result<T, E> Ok(T v) {
-        return new(v, default(E), true);
+        return new Result<T, E>(v, default(E), true);
     }
 
     public static Result<T, E> Err(E e) {
-        return new(default(T), e, false);
+        return new Result<T, E>(default(T), e, false);
     }
 
     public static implicit operator Result<T, E>(T v) => new(v, default(E), true);

@@ -8,8 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
-using NotionAutomation;
 using NotionAutomation.Db;
+using NotionAutomation.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSwaggerGen(c => {

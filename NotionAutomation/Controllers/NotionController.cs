@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NotionAutomation.Attributes;
+using NotionAutomation.DataTypes;
 using NotionAutomation.Db;
-using NotionAutomation.Objects;
+using NotionAutomation.Services;
 
-namespace NotionAutomation;
+namespace NotionAutomation.Controllers;
 
 [ApiController]
 [Route("api")]
