@@ -11,7 +11,7 @@ First, you have to retrieve bearer token from notion (as it is used for authenti
 to run it create `updateNotion.sh`
 and add these lines:
 ```
-curl -X 'Post' \
+curl -X 'POST' \
   'https://notionautomation-ofkv.onrender.com/api/updateNotionDatabases' \
   -H 'accept: */*' \
   -H 'Authorization: Bearer SOME_BEARER_TOKEN'
