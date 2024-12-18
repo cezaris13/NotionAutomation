@@ -62,7 +62,7 @@ public class NotionApiService(
             continuationToken = response.Value.NextCursor;
 
             var filteredTasks = response.Value.Results.Where(p =>
-                p.Properties?.Date?.DateObject?.EndDate == null || p.Properties.Date.DateObject.EndDate < DateTime.Now);
+                p.Properties?.Date?.DateObject?.EndDate == null || p.Properties.Date.DateObject.EndDate < DateTime.Today);
 
             tasks = tasks.Concat(filteredTasks).ToList();
         } while (continuationToken != null);
