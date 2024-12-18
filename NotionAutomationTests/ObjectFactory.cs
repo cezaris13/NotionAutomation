@@ -40,7 +40,7 @@ public static class ObjectFactory {
         return rules;
     }
 
-    public static List<QueryObject> CreateQueryObjects(int size) {
+    public static List<QueryObject> CreateQueryObjects(int size, DateTime? endDate = null) {
         List<QueryObject> queryObjects = [];
 
         for (var i = 0; i < size; i++) {
@@ -58,6 +58,12 @@ public static class ObjectFactory {
                                         Select = new Select {
                                             Name = "InProgress"
                                         }
+                                    },
+                                    Date = new NotionDate {
+                                       DateObject = new DateObject {
+                                           StartDate = DateTime.Now,
+                                           EndDate = endDate
+                                       }
                                     }
                                 }
                             })

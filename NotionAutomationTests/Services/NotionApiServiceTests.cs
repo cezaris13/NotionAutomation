@@ -259,6 +259,41 @@ public class NotionApiServiceTests {
     }
 
     [TestMethod]
+    public async Task GetTasks_TaskSpansAcrossSeveralDays_ReturnsEmptyList() {
+        // Assign
+        var ruleId = Guid.NewGuid();
+        var databaseId = Guid.NewGuid();
+        var notionRules = ObjectFactory.CreateNotionDatabaseRules(2, ruleId, databaseId);
+        var queryObjects = ObjectFactory.CreateQueryObjects(1, DateTime.Today.AddDays(1));
+
+        using var scope = m_serviceProvider.CreateScope();
+        var mockDbContext = scope.ServiceProvider.GetRequiredService<NotionDbContext>();
+        mockDbContext.NotionDatabaseRules.AddRange(notionRules);
+        await mockDbContext.SaveChangesAsync();
+
+        SetupHttpMessageHandlerMock(queryObjects
+            .Select(p => ObjectFactory.CreateResponse(content: p)));
+        SetupBearerToken();
+
+        var sut = new NotionApiService(m_mockHttpClientFactory.Object, mockDbContext,
+            m_mockHttpContextAccessor.Object);
+
+        // Act
+        var result = await sut.GetTasks(databaseId);
+
+        // Assert
+        Assert.IsTrue(result.IsOk);
+        Assert.AreEqual(0, result.Value.Count);
+
+        m_mockHttpMessageHandler.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(1),
+            ItExpr.IsAny<HttpRequestMessage>(),
+            ItExpr.IsAny<CancellationToken>()
+        );
+    }
+    
+    [TestMethod]
     public async Task GetTasks_OneRequestsFails_ReturnErrorMessage() {
         // Assign
         var ruleId = Guid.NewGuid();
